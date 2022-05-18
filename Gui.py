@@ -7,6 +7,7 @@ from Button import Button
 import os
 from datetime import datetime
 from random import choice
+import pandas as pd
 
 WHITE, GREEN, RED = (255,255,255), (0, 255, 0), (255, 0, 0)
 
@@ -16,7 +17,6 @@ def get_list_of_game_files():
 def get_random_game():
     games0 = get_list_of_game_files()
     filename = choice(games0)
-    print(f'Game {filename} is picked')
     return load_game(filename), filename
 
 def assemble_games_dataframe():
@@ -122,15 +122,15 @@ def display_labels(G, sandbox, num_moves=None):
     text_params1 = my_font.render(f'GENUS = {G.genus}', False, WHITE)
     text_params2 = my_font.render(f'BANK = {G.bank}', False, WHITE)
 
-    screen.blit(text_params1, (30, 40))
-    screen.blit(text_params2, (30, 60))
+    screen.blit(text_params1, (20, 40))
+    screen.blit(text_params2, (20, 60))
     if sandbox:
         valid = is_game_valid(G)
         text_proceed = my_font.render('valid' if valid else 'invalid', False, GREEN if valid else RED)
-        screen.blit(text_proceed, (30, 80))
+        screen.blit(text_proceed, (20, 80))
     else:
-        text_moves = my_font.render(f'moves executed = {num_moves}', False, WHITE)
-        screen.blit(text_moves, (30, 80))
+        text_moves = my_font.render(f'#of moves = {num_moves}', False, WHITE)
+        screen.blit(text_moves, (20, 80))
 
 def display_nodes_edges(G):
     # nodes
@@ -165,7 +165,6 @@ def SandboxWindow():
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
                 if not field_rect.collidepoint(up):
-                    print('pressed outside of the region')
                     if btn_proceed.hovering(up):
                         GameWindow(G)
                     if btn_discard.hovering(up):
@@ -210,11 +209,42 @@ def SandboxWindow():
         pygame.draw.rect(screen, (0, 0, 255), [WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
 
+
 def OpenGameWindow():
-    pass
+    print('OpenGameWindow is opened')
+    pygame.display.set_caption('Menu')
+    files_rect = pygame.Rect((10, 10), (780, 530))
+    btn_back = Button((10, 550), (100, 40), 'back')
+    btn_randomgame = Button((130, 550), (100, 40), 'random')
+    running_opengame = True
+    
+    while running_opengame:
+        screen.fill('black')
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:      
+                down = pygame.mouse.get_pos()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                up = pygame.mouse.get_pos()
+                if event.button == 4: #mousewheel up
+                    print('mousewheel up')
+                elif event.button == 5: #mousewheel down
+                    print('mousewheel down')
+                elif btn_back.hovering(up):
+                    running_opengame = False
+                elif btn_randomgame.hovering(up):
+                    print('Starting a random game')
+                    g, filename = get_random_game()
+                    GameWindow(g, filename)
+            elif event.type == pygame.QUIT:
+                running_opengame = False
+        btn_back.draw(screen, my_font)
+        btn_randomgame.draw(screen, my_font)
+        pygame.draw.rect(screen, WHITE, [10, 10, 780, 530], 4)
+        pygame.display.update()
+
 
 def GameWindow(g, filename=None):
-    print('Game is started')
+    val = filename or 'New'; print(f'{val} game is started')
     pygame.display.set_caption('Game')
     field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
     btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save')
@@ -232,9 +262,6 @@ def GameWindow(g, filename=None):
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
                 if not field_rect.collidepoint(up):
-                    print('pressed outside of the region')
-                    print(g.debt)
-                    # left side buttons
                     if btn_save.hovering(up):
                         if not moves:
                             print('Save empty game')
@@ -246,7 +273,7 @@ def GameWindow(g, filename=None):
                     elif btn_back.hovering(up):
                         running_game = False
                         break
-                else:
+                elif not is_victory:
                     down_bool, node_down = mouse_on_node(g, down)
                     up_bool, node_up = mouse_on_node(g, up)
                     if down_bool:
@@ -327,8 +354,6 @@ def MenuWindow():
                 elif btn_play_open.hovering(up):
                     print('this should open a window to choose an existing game')
                     OpenGameWindow()
-                    g, filename = get_random_game()
-                    GameWindow(g, filename)
                 # print(up)
             elif event.type == pygame.QUIT:
                 running_menu = False
@@ -361,4 +386,4 @@ if __name__ == '__main__':
     MenuWindow()
     # g = load_game('6.json')
     # GameWindow(g, '6.json')
-
+    # OpenGameWindow()
