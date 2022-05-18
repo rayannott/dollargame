@@ -10,6 +10,17 @@ from random import choice
 import pandas as pd
 
 WHITE, GREEN, RED = (255, 255, 255), (0, 255, 0), (255, 0, 0)
+RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
+         for ind in range(9)]
+WIDTH, HEIGHT = 800, 600
+NODERADIUS = 20
+
+pygame_icon = pygame.image.load('icon.png')
+pygame.display.set_icon(pygame_icon)
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.font.init()
+my_font = pygame.font.SysFont('UASQUARE.ttf', 30)
+my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
 
 
 def get_list_of_game_files():
@@ -25,7 +36,6 @@ def get_random_game():
 def assemble_games_dataframe():
     # this dataframe will have columns:
     # game_number, difficulty(genus?), number_of_plays, best_play, date_created
-    import time
     data = {
         'game_number': [],
         'difficulty': [],
@@ -39,7 +49,7 @@ def assemble_games_dataframe():
             dat = json.load(f)
 
         data['game_number'].append(int(file[:-5]))
-        
+
         graph = dat['graph']
         values = graph['values'].values()
         genus = len(graph['edges']) - len(values) + 1
@@ -68,14 +78,15 @@ def create_panels(df):
 
 def display_panels(panels):
     for ind, panel in enumerate(panels):
-        panel.draw(topleft=(15, PANEL_HEIGHT + ind*54), screen=screen, font=my_font)
+        panel.draw(topleft=(15, PANEL_HEIGHT + ind*54),
+                   screen=screen, font=my_font)
 
-RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*54, 770, PANEL_HEIGHT]) for ind in range(9)]
 
 def what_rect_hover(pos):
     for i, rect in enumerate(RECTS):
         if rect.collidepoint(pos):
             return i
+
 
 def shift_panels(start, finish, shift, number_of_panels):
     # shift is either 1 (down) or -1 (up)
@@ -86,7 +97,7 @@ def shift_panels(start, finish, shift, number_of_panels):
         start += 1
         finish += 1
     return start, finish
-    
+
 
 def get_next_game_number():
     # cutting off the '.json' part
@@ -245,6 +256,7 @@ def SandboxWindow():
                 if not field_rect.collidepoint(up):
                     if btn_proceed.hovering(up):
                         GameWindow(G)
+                        pygame.display.set_caption('Game creation')
                     if btn_discard.hovering(up):
                         # add discard confirmation
                         running = False
@@ -291,14 +303,12 @@ def SandboxWindow():
 
 def OpenGameWindow():
     print('OpenGameWindow is opened')
-    pygame.display.set_caption('Open game...')
     files_rect = pygame.Rect((10, 10), (780, 530))
     btn_back = Button((10, 550), (100, 40), 'back')
     btn_randomgame = Button((130, 550), (100, 40), 'random')
-    df = assemble_games_dataframe()
-    panels = create_panels(df)
-    start, finish = 0, 9
-    panels9 = panels[start:finish]
+    btn_shiftdown = Button((745, 550), (45, 40), '  d')
+    btn_shiftup = Button((690, 550), (45, 40), '  u')
+    update = True
 
     running_opengame = True
     while running_opengame:
@@ -308,14 +318,21 @@ def OpenGameWindow():
                 down = pygame.mouse.get_pos()
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
-                
+
                 if event.button == 1:
+                    scroll_down_pressed = btn_shiftdown.hovering(up)
+                    scroll_up_pressed = btn_shiftup.hovering(up)
                     if btn_back.hovering(up):
                         running_opengame = False
                     elif btn_randomgame.hovering(up):
                         print('Starting a random game')
                         g, filename = get_random_game()
                         GameWindow(g, filename)
+                        update = True
+                    elif scroll_down_pressed or scroll_up_pressed:
+                        start, finish = shift_panels(
+                            start, finish, shift=(-1 if scroll_down_pressed else 1), number_of_panels=len(panels))
+                        panels9 = panels[start:finish]
                     else:
                         # here we handle clicking the panels
                         panel_number = what_rect_hover(up)
@@ -324,31 +341,44 @@ def OpenGameWindow():
                             filename = f'{game_number}.json'
                             print(filename)
                             g = load_game(filename)
-                            GameWindow(g, filename)   
-                            df = assemble_games_dataframe()
-                            panels = create_panels(df)
-                            start, finish = 0, 9
-                            panels9 = panels[start:finish]                     
-                elif event.button == 4:  # mousewheel up
-                    # print('mousewheel up')
-                    start, finish = shift_panels(start, finish, shift=1, number_of_panels=len(panels))
+                            GameWindow(g, filename)
+                            update = True
+                elif event.button in {4, 5}:  # mousewheel
+                    wheel_up = event.button == 4
+                    start, finish = shift_panels(
+                        start, finish, shift=(1 if wheel_up else -1), number_of_panels=len(panels))
                     panels9 = panels[start:finish]
-                elif event.button == 5:  # mousewheel down
-                    # print('mousewheel down')
-                    start, finish = shift_panels(start, finish, shift=-1, number_of_panels=len(panels))
-                    panels9 = panels[start:finish]
-                
+
             elif event.type == pygame.QUIT:
                 running_opengame = False
         
+        if update:
+            pygame.display.set_caption('Open game...')
+            print('DF assembled')
+            df = assemble_games_dataframe()
+            panels = create_panels(df)
+            start, finish = 0, 9
+            panels9 = panels[start:finish]
+            update = False
+        
         btn_back.draw(screen, my_font)
         btn_randomgame.draw(screen, my_font)
+        btn_shiftdown.draw(screen, my_font)
+        btn_shiftup.draw(screen, my_font)
+
         display_panels(panels9)
-        screen.blit(my_font.render('Game #', False, (255,255,255)), (15+10, 15))
-        screen.blit(my_font.render('Difficulty', False, (255,255,255)), (15+130, 15))
-        screen.blit(my_font.render('# of plays', False, (255,255,255)), (15+270, 15))
-        screen.blit(my_font.render('Least # of moves', False, (255,255,255)), (15+400, 15))
-        screen.blit(my_font.render('Date created', False, (255,255,255)), (15+575, 15))
+        screen.blit(my_font.render('Game #', False,
+                                   (255, 255, 255)), (15+10, 15))
+        screen.blit(my_font.render('Difficulty', False,
+                                   (255, 255, 255)), (15+130, 15))
+        screen.blit(my_font.render('# of plays', False,
+                                   (255, 255, 255)), (15+270, 15))
+        screen.blit(my_font.render('Least # of moves',
+                                   False, (255, 255, 255)), (15+400, 15))
+        screen.blit(my_font.render('Date created', False,
+                                   (255, 255, 255)), (15+575, 15))
+
+
         pygame.draw.rect(screen, WHITE, [10, 10, 780, 530], 4)
         pygame.display.update()
 
@@ -446,9 +476,9 @@ def OptionsWindow():
 def MenuWindow():
     pygame.display.set_caption('Menu')
     btn_play = Button((200, 50), (400, 100), 'PLAY')
-    btn_play_create = Button((200, 50), (130, 100), 'create', is_active=False)
-    btn_play_open = Button((333, 50), (130, 100), 'open', is_active=False)
-    btn_play_back = Button((466, 50), (130, 100), 'back', is_active=False)
+    btn_play_create = Button((200, 50), (130, 100), 'create', is_active=False, is_visible=False)
+    btn_play_open = Button((335, 50), (130, 100), 'open', is_active=False, is_visible=False)
+    btn_play_back = Button((470, 50), (130, 100), 'back', is_active=False, is_visible=False)
     btn_options = Button((200, 250), (400, 100), 'OPTIONS')
     btn_exit = Button((200, 450), (400, 100), 'EXIT')
 
@@ -463,11 +493,14 @@ def MenuWindow():
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
                 if btn_play.hovering(up):
-                    show_play_subbtns = True
                     btn_play.is_active = False
+                    btn_play.is_visible = False
                     btn_play_create.is_active = True
                     btn_play_open.is_active = True
                     btn_play_back.is_active = True
+                    btn_play_create.is_visible = True
+                    btn_play_open.is_visible = True
+                    btn_play_back.is_visible = True
                 elif btn_options.hovering(up):
                     # OptionsWindow: show_nodes_ids
                     pass
@@ -475,26 +508,28 @@ def MenuWindow():
                     running_menu = False
                     # pygame.quit()
                 elif btn_play_back.hovering(up):
-                    show_play_subbtns = False
                     btn_play.is_active = True
+                    btn_play.is_visible = True
                     btn_play_create.is_active = False
                     btn_play_open.is_active = False
                     btn_play_back.is_active = False
+                    btn_play_create.is_visible = False
+                    btn_play_open.is_visible = False
+                    btn_play_back.is_visible = False
                 elif btn_play_create.hovering(up):
                     SandboxWindow()
+                    pygame.display.set_caption('Menu')
                 elif btn_play_open.hovering(up):
-                    print('this should open a window to choose an existing game')
                     OpenGameWindow()
+                    pygame.display.set_caption('Menu')
                 # print(up)
             elif event.type == pygame.QUIT:
                 running_menu = False
 
-        if show_play_subbtns:
-            btn_play_create.draw(screen, my_font)
-            btn_play_open.draw(screen, my_font)
-            btn_play_back.draw(screen, my_font)
-        else:
-            btn_play.draw(screen, my_font)
+        btn_play_create.draw(screen, my_font)
+        btn_play_open.draw(screen, my_font)
+        btn_play_back.draw(screen, my_font)
+        btn_play.draw(screen, my_font)
 
         # white outline
         pygame.draw.rect(screen, (255, 255, 255), [0, 0, WIDTH, HEIGHT], 4)
@@ -505,13 +540,4 @@ def MenuWindow():
 
 
 if __name__ == '__main__':
-    WIDTH, HEIGHT = 800, 600
-    NODERADIUS = 20
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.font.init()
-    my_font = pygame.font.SysFont('UASQUARE.ttf', 30)
-    my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
-
     MenuWindow()
-
-    # OpenGameWindow()
