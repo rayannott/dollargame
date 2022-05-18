@@ -3,7 +3,7 @@ import pygame
 from Graph import DGGraph, load_game
 from itertools import count
 from math import sqrt
-from Button import Button, Panel
+from Button import Button, Panel, PANEL_HEIGHT
 import os
 from datetime import datetime
 from random import choice
@@ -59,20 +59,25 @@ def create_panels(df):
 
 def display_panels(panels):
     for ind, panel in enumerate(panels):
-        panel.draw(topleft=(15, 16 + ind*87), screen=screen, font=my_font)
+        panel.draw(topleft=(15, PANEL_HEIGHT + ind*54), screen=screen, font=my_font)
 
+RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*54, 770, PANEL_HEIGHT]) for ind in range(9)]
+
+def what_rect_hover(pos):
+    for i, rect in enumerate(RECTS):
+        if rect.collidepoint(pos):
+            return i
 
 def shift_panels(start, finish, shift, number_of_panels):
     # shift is either 1 (down) or -1 (up)
     if shift == 1 and start > 0:
         start -= 1
         finish -= 1
-    elif shift == -1 and finish < number_of_panels - 1:
+    elif shift == -1 and finish < number_of_panels:
         start += 1
         finish += 1
     return start, finish
     
-
 
 def get_next_game_number():
     # cutting off the '.json' part
@@ -281,12 +286,13 @@ def OpenGameWindow():
     files_rect = pygame.Rect((10, 10), (780, 530))
     btn_back = Button((10, 550), (100, 40), 'back')
     btn_randomgame = Button((130, 550), (100, 40), 'random')
+    btn_update = Button((250, 550), (100, 40), 'update')
     df = assemble_games_dataframe()
     panels = create_panels(df)
-    start, finish = 0, 6
-    panels6 = panels[start:finish]
-    running_opengame = True
+    start, finish = 0, 9
+    panels9 = panels[start:finish]
 
+    running_opengame = True
     while running_opengame:
         screen.fill('black')
         for event in pygame.event.get():
@@ -294,26 +300,46 @@ def OpenGameWindow():
                 down = pygame.mouse.get_pos()
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
-                if event.button == 4:  # mousewheel up
-                    print('mousewheel up')
+                
+                if event.button == 1:
+                    if btn_back.hovering(up):
+                        running_opengame = False
+                    elif btn_randomgame.hovering(up):
+                        print('Starting a random game')
+                        g, filename = get_random_game()
+                        GameWindow(g, filename)
+                    elif btn_update.hovering(up):
+                        df = assemble_games_dataframe()
+                        panels = create_panels(df)
+                        start, finish = 0, 9
+                        panels9 = panels[start:finish]
+                    else:
+                        # here we handle clicking the panels
+                        panel_number = what_rect_hover(up)
+                        if panel_number is not None:
+                            game_number = panels9[panel_number].data['game_number']
+                            filename = f'{game_number}.json'
+                            print(filename)
+                            g = load_game(filename)
+                            GameWindow(g, filename)
+                            
+
+                elif event.button == 4:  # mousewheel up
+                    # print('mousewheel up')
                     start, finish = shift_panels(start, finish, shift=1, number_of_panels=len(panels))
-                    panels6 = panels[start:finish]
+                    panels9 = panels[start:finish]
                 elif event.button == 5:  # mousewheel down
-                    print('mousewheel down')
+                    # print('mousewheel down')
                     start, finish = shift_panels(start, finish, shift=-1, number_of_panels=len(panels))
-                    panels6 = panels[start:finish]
-                elif btn_back.hovering(up):
-                    running_opengame = False
-                elif btn_randomgame.hovering(up):
-                    print('Starting a random game')
-                    g, filename = get_random_game()
-                    GameWindow(g, filename)
+                    panels9 = panels[start:finish]
+                
             elif event.type == pygame.QUIT:
                 running_opengame = False
         
         btn_back.draw(screen, my_font)
         btn_randomgame.draw(screen, my_font)
-        display_panels(panels6)
+        btn_update.draw(screen, my_font)
+        display_panels(panels9)
         pygame.draw.rect(screen, WHITE, [10, 10, 780, 530], 4)
         pygame.display.update()
 
@@ -462,6 +488,5 @@ if __name__ == '__main__':
     my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
 
     # MenuWindow()
-    # g = load_game('6.json')
-    # GameWindow(g, '6.json')
+
     OpenGameWindow()
