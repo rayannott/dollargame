@@ -27,10 +27,8 @@ class Button():
 
 PANEL_HEIGHT = 50
 
-
 class Panel():
-    def __init__(self, data, num=None):
-        self.num = num # a number from 0 to 6
+    def __init__(self, data):
         self.data = data
 
     

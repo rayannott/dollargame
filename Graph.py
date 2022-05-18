@@ -1,6 +1,5 @@
 import networkx as nx
 import json
-from datetime import datetime
 
 
 class DGGraph(nx.Graph):

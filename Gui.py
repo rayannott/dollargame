@@ -7,13 +7,11 @@ from Button import Button, Panel, PANEL_HEIGHT
 import os
 from datetime import datetime
 from random import choice
-import pandas as pd
 
 WHITE, GREEN, RED = (255, 255, 255), (0, 255, 0), (255, 0, 0)
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
          for ind in range(9)]
 WIDTH, HEIGHT = 800, 600
-NODERADIUS = 20
 
 pygame_icon = pygame.image.load('icon.png')
 pygame.display.set_icon(pygame_icon)
@@ -34,45 +32,34 @@ def get_random_game():
 
 
 def assemble_games_dataframe():
-    # this dataframe will have columns:
-    # game_number, difficulty(genus?), number_of_plays, best_play, date_created
-    data = {
-        'game_number': [],
-        'difficulty': [],
-        'num_of_plays': [],
-        'best_score': [],
-        'date_created': []
-    }
+    df = []
     filenames = get_list_of_game_files()
     for file in filenames:
         with open('games/' + file, 'r') as f:
             dat = json.load(f)
-
-        data['game_number'].append(int(file[:-5]))
-
+        data = {}
         graph = dat['graph']
         values = graph['values'].values()
         genus = len(graph['edges']) - len(values) + 1
-        data['difficulty'].append(sum(values) - genus)
         plays = dat['plays']
-        data['num_of_plays'].append(len(plays))
         if len(plays):
             best_score = min([len(play['moves']) for play in plays])
         else:
-            best_score = 'no games'
-        data['best_score'].append(best_score)
-        data['date_created'].append(dat['info']['date_created'])
-    df = pd.DataFrame(data)
-    df = df.set_index('game_number')
-    df.sort_values('num_of_plays', inplace=True)
+            best_score = 'not solved'
+        data['game_number'] = int(file[:-5])
+        data['difficulty'] = sum(values) - genus
+        data['num_of_plays'] = len(plays)
+        data['best_score'] = best_score
+        data['date_created'] = dat['info']['date_created']
+        df.append(data)
+    df.sort(key=lambda x : x['num_of_plays'])
     return df
 
 
 def create_panels(df):
     panels = []
-    for i, (game_num, row) in enumerate(df.iterrows()):
-        row['game_number'] = game_num
-        panels.append(Panel(data=row))
+    for dat in df:
+        panels.append(Panel(data=dat))
     return panels
 
 
@@ -157,7 +144,7 @@ def is_game_valid(G):
 
 def mouse_on_node(G, pos):
     for node, attr in G.nodes.items():
-        if dist(pos, attr['pos']) < NODERADIUS:
+        if dist(pos, attr['pos']) < 20:
             return (True, node)
     return (False, None)
 
@@ -191,10 +178,6 @@ def decrease_value(G, node):
     G.change_value(node, increase=False)
 
 
-def display_log(G, clear):
-    pass
-
-
 def display_labels(G, sandbox, num_moves=None):
     # node values
     for n in G.nodes():
@@ -203,7 +186,7 @@ def display_labels(G, sandbox, num_moves=None):
                                                WHITE if current_value >= 0 else RED)
         pos = G.nodes[n]['pos']
         screen.blit(text_node_vals,
-                    (pos[0]+int(NODERADIUS/1), pos[1]+int(NODERADIUS/2)))
+                    (pos[0]+20, pos[1]+12))
     # display parameters (genus, bank) and indicator
     text_params1 = my_font.render(f'GENUS = {G.genus}', False, WHITE)
     text_params2 = my_font.render(f'BANK = {G.bank}', False, WHITE)
@@ -216,7 +199,7 @@ def display_labels(G, sandbox, num_moves=None):
             'valid' if valid else 'invalid', False, GREEN if valid else RED)
         screen.blit(text_proceed, (20, 80))
     else:
-        text_moves = my_font.render(f'#of moves = {num_moves}', False, WHITE)
+        text_moves = my_font.render(f'MOVES = {num_moves}', False, WHITE)
         screen.blit(text_moves, (20, 80))
 
 
@@ -224,7 +207,7 @@ def display_nodes_edges(G):
     # nodes
     for node in G.nodes:
         pygame.draw.circle(screen, (255, 255, 255),
-                           G.nodes[node]['pos'], NODERADIUS, 2)
+                           G.nodes[node]['pos'], 20, 2)
     # edges
     for s, f in G.edges:
         pygame.draw.line(screen, (255, 255, 255),
@@ -239,7 +222,6 @@ def SandboxWindow():
 
     G = DGGraph()
     cnt = count(0)
-    # log = []
     btn_proceed = Button(topleft=(30, 450), size=(100, 40), text='Proceed')
     btn_proceed.is_active = is_game_valid(G)
     btn_discard = Button(topleft=(30, 510), size=(100, 40), text='Discard')
@@ -279,11 +261,8 @@ def SandboxWindow():
                                 else:
                                     create_edge(G, node_down, node_up)
                     else:
-                        if dist(down, up) < NODERADIUS:
+                        if dist(down, up) < 20:
                             create_node(G, next(cnt), down)
-                        else:
-                            # temporary
-                            print('Unknown command')
 
             elif event.type == pygame.QUIT:
                 running = False
@@ -305,7 +284,8 @@ def OpenGameWindow():
     print('OpenGameWindow is opened')
     files_rect = pygame.Rect((10, 10), (780, 530))
     btn_back = Button((10, 550), (100, 40), 'back')
-    btn_randomgame = Button((130, 550), (100, 40), 'random')
+    btn_randomgame = Button((120, 550), (100, 40), 'random')
+    btn_generate_game = Button((230, 550), (100, 40), 'generate')
     btn_shiftdown = Button((745, 550), (45, 40), '  d')
     btn_shiftup = Button((690, 550), (45, 40), '  u')
     update = True
@@ -318,7 +298,6 @@ def OpenGameWindow():
                 down = pygame.mouse.get_pos()
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
-
                 if event.button == 1:
                     scroll_down_pressed = btn_shiftdown.hovering(up)
                     scroll_up_pressed = btn_shiftup.hovering(up)
@@ -329,6 +308,8 @@ def OpenGameWindow():
                         g, filename = get_random_game()
                         GameWindow(g, filename)
                         update = True
+                    if btn_generate_game.hovering(up):
+                        print('Nothing yet')
                     elif scroll_down_pressed or scroll_up_pressed:
                         start, finish = shift_panels(
                             start, finish, shift=(-1 if scroll_down_pressed else 1), number_of_panels=len(panels))
@@ -339,7 +320,6 @@ def OpenGameWindow():
                         if panel_number is not None:
                             game_number = panels9[panel_number].data['game_number']
                             filename = f'{game_number}.json'
-                            print(filename)
                             g = load_game(filename)
                             GameWindow(g, filename)
                             update = True
@@ -365,6 +345,7 @@ def OpenGameWindow():
         btn_randomgame.draw(screen, my_font)
         btn_shiftdown.draw(screen, my_font)
         btn_shiftup.draw(screen, my_font)
+        btn_generate_game.draw(screen, my_font)
 
         display_panels(panels9)
         screen.blit(my_font.render('Game #', False,
@@ -384,6 +365,7 @@ def OpenGameWindow():
 
 
 def GameWindow(g, filename=None):
+    from copy import deepcopy
     val = filename or 'New'
     print(f'{val} game is started')
     pygame.display.set_caption('Game')
@@ -394,6 +376,7 @@ def GameWindow(g, filename=None):
     is_victory = False
     only_once = True
     moves = []
+    g_not_solved = deepcopy(g) # what the fuck is a deepcopy????
 
     while running_game:
         screen.fill('black')
@@ -410,7 +393,7 @@ def GameWindow(g, filename=None):
                                 filename = save_new_game(g)
                                 btn_save.is_active = False
                             elif is_victory:
-                                save_finished_game(g, moves, filename)
+                                save_finished_game(g_not_solved, moves, filename)
                                 btn_save.is_active = False
                         elif btn_back.hovering(up):
                             running_game = False
