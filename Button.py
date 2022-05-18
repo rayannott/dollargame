@@ -23,3 +23,17 @@ class Button():
             print(f'btn {self.text} is pressed')
         return res
 
+class Panel():
+    def __init__(self, data, num=None):
+        self.num = num # a number from 0 to 6
+        self.data = data
+
+    
+    def draw(self, topleft, screen, font):
+        x, y = topleft
+        pygame.draw.rect(screen, (0,255,0), [x, y, 770, 83], 4)
+        screen.blit(font.render(str(self.data['game_number']), False, (255,255,255)), (x+10, y+10))
+        screen.blit(font.render(str(self.data['difficulty']), False, (255,255,255)), (x+110, y+10))
+        screen.blit(font.render(str(self.data['num_of_plays']), False, (255,255,255)), (x+210, y+10))
+        screen.blit(font.render(str(self.data['best_score']), False, (255,255,255)), (x+310, y+10))
+        screen.blit(font.render(str(self.data['date_created']), False, (255,255,255)), (x+410, y+10))
