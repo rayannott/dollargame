@@ -8,22 +8,28 @@ import os
 from datetime import datetime
 from random import choice
 
-WHITE = (255,255,255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
+WHITE, GREEN, RED = (255,255,255), (0, 255, 0), (255, 0, 0)
 
-
+def get_list_of_game_files():
+    return [el for el in os.listdir('games') if el.endswith('.json')]
 
 def get_random_game():
-    games0 = [el for el in os.listdir('games') if el.endswith('.json')]
+    games0 = get_list_of_game_files()
     filename = choice(games0)
     print(f'Game {filename} is picked')
     return load_game(filename), filename
 
+def assemble_games_dataframe():
+    # this dataframe will have columns: 
+    # game_number, number_of_plays, difficulty*, date_created
+    pass
+
+def display_dataframe():
+    # this will display the dataframe in the OpenGameWindow
+    pass
 
 def get_next_game_number():
-    games0 = os.listdir('games')
-    games_num = [int(el[:-5]) for el in games0 if el.endswith('.json')] # filtering
+    games_num = [int(el[:-5]) for el in get_list_of_game_files()] # cutting off the '.json' part
     return max(games_num) + 1
 
 def save_finished_game(g, moves, filename):
@@ -204,6 +210,9 @@ def SandboxWindow():
         pygame.draw.rect(screen, (0, 0, 255), [WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
 
+def OpenGameWindow():
+    pass
+
 def GameWindow(g, filename=None):
     print('Game is started')
     pygame.display.set_caption('Game')
@@ -235,7 +244,8 @@ def GameWindow(g, filename=None):
                             save_finished_game(g, moves, filename)
                             btn_save.is_active = False
                     elif btn_back.hovering(up):
-                        MenuWindow()
+                        running_game = False
+                        break
                 else:
                     down_bool, node_down = mouse_on_node(g, down)
                     up_bool, node_up = mouse_on_node(g, up)
@@ -316,6 +326,7 @@ def MenuWindow():
                     SandboxWindow()
                 elif btn_play_open.hovering(up):
                     print('this should open a window to choose an existing game')
+                    OpenGameWindow()
                     g, filename = get_random_game()
                     GameWindow(g, filename)
                 # print(up)
@@ -348,7 +359,6 @@ if __name__ == '__main__':
     my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
 
     MenuWindow()
-    
     # g = load_game('6.json')
     # GameWindow(g, '6.json')
 
