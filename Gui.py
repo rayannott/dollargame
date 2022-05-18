@@ -39,9 +39,18 @@ def assemble_games_dataframe():
             dat = json.load(f)
 
         data['game_number'].append(int(file[:-5]))
-        data['difficulty'].append('none yet')
-        data['num_of_plays'].append(len(dat['plays']))
-        data['best_score'].append('none yet 2')
+        
+        graph = dat['graph']
+        values = graph['values'].values()
+        genus = len(graph['edges']) - len(values) + 1
+        data['difficulty'].append(sum(values) - genus)
+        plays = dat['plays']
+        data['num_of_plays'].append(len(plays))
+        if len(plays):
+            best_score = min([len(play['moves']) for play in plays])
+        else:
+            best_score = 'no games'
+        data['best_score'].append(best_score)
         data['date_created'].append(dat['info']['date_created'])
     df = pd.DataFrame(data)
     df = df.set_index('game_number')
@@ -282,11 +291,10 @@ def SandboxWindow():
 
 def OpenGameWindow():
     print('OpenGameWindow is opened')
-    pygame.display.set_caption('Menu')
+    pygame.display.set_caption('Open game...')
     files_rect = pygame.Rect((10, 10), (780, 530))
     btn_back = Button((10, 550), (100, 40), 'back')
     btn_randomgame = Button((130, 550), (100, 40), 'random')
-    btn_update = Button((250, 550), (100, 40), 'update')
     df = assemble_games_dataframe()
     panels = create_panels(df)
     start, finish = 0, 9
@@ -308,11 +316,6 @@ def OpenGameWindow():
                         print('Starting a random game')
                         g, filename = get_random_game()
                         GameWindow(g, filename)
-                    elif btn_update.hovering(up):
-                        df = assemble_games_dataframe()
-                        panels = create_panels(df)
-                        start, finish = 0, 9
-                        panels9 = panels[start:finish]
                     else:
                         # here we handle clicking the panels
                         panel_number = what_rect_hover(up)
@@ -321,9 +324,11 @@ def OpenGameWindow():
                             filename = f'{game_number}.json'
                             print(filename)
                             g = load_game(filename)
-                            GameWindow(g, filename)
-                            
-
+                            GameWindow(g, filename)   
+                            df = assemble_games_dataframe()
+                            panels = create_panels(df)
+                            start, finish = 0, 9
+                            panels9 = panels[start:finish]                     
                 elif event.button == 4:  # mousewheel up
                     # print('mousewheel up')
                     start, finish = shift_panels(start, finish, shift=1, number_of_panels=len(panels))
@@ -338,8 +343,12 @@ def OpenGameWindow():
         
         btn_back.draw(screen, my_font)
         btn_randomgame.draw(screen, my_font)
-        btn_update.draw(screen, my_font)
         display_panels(panels9)
+        screen.blit(my_font.render('Game #', False, (255,255,255)), (15+10, 15))
+        screen.blit(my_font.render('Difficulty', False, (255,255,255)), (15+130, 15))
+        screen.blit(my_font.render('# of plays', False, (255,255,255)), (15+270, 15))
+        screen.blit(my_font.render('Least # of moves', False, (255,255,255)), (15+400, 15))
+        screen.blit(my_font.render('Date created', False, (255,255,255)), (15+575, 15))
         pygame.draw.rect(screen, WHITE, [10, 10, 780, 530], 4)
         pygame.display.update()
 
@@ -363,31 +372,47 @@ def GameWindow(g, filename=None):
                 down = pygame.mouse.get_pos()
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
-                if not field_rect.collidepoint(up):
-                    if btn_save.hovering(up):
-                        if not moves:
-                            print('Save empty game')
-                            filename = save_new_game(g)
-                            btn_save.is_active = False
-                        elif is_victory:
-                            save_finished_game(g, moves, filename)
-                            btn_save.is_active = False
-                    elif btn_back.hovering(up):
-                        running_game = False
-                        break
-                elif not is_victory:
+                if event.button == 1:
+                    if not field_rect.collidepoint(up):
+                        if btn_save.hovering(up):
+                            if not moves:
+                                print('Save empty game')
+                                filename = save_new_game(g)
+                                btn_save.is_active = False
+                            elif is_victory:
+                                save_finished_game(g, moves, filename)
+                                btn_save.is_active = False
+                        elif btn_back.hovering(up):
+                            running_game = False
+                            break
+                    elif not is_victory:
+                        # this code makes old controls possible
+                        down_bool, node_down = mouse_on_node(g, down)
+                        up_bool, node_up = mouse_on_node(g, up)
+                        if down_bool:
+                            if not up_bool:
+                                if down[1] > up[1]:
+                                    print(f'Node {node_down} gives')
+                                    g.give(node_down)
+                                    moves.append((node_down, 'give'))
+                                else:
+                                    print(f'Node {node_down} takes')
+                                    g.take(node_down)
+                                    moves.append((node_down, 'take'))
+                        is_victory = g.is_victory()
+                        # --------------------
+                else:
                     down_bool, node_down = mouse_on_node(g, down)
                     up_bool, node_up = mouse_on_node(g, up)
-                    if down_bool:
-                        if not up_bool:
-                            if down[1] > up[1]:
-                                print(f'Node {node_down} gives')
-                                g.give(node_down)
-                                moves.append((node_down, 'give'))
-                            else:
-                                print(f'Node {node_down} takes')
-                                g.take(node_down)
-                                moves.append((node_down, 'take'))
+                    if down_bool and not is_victory:
+                        if event.button == 4:
+                            print(f'Node {node_down} gives')
+                            g.give(node_down)
+                            moves.append((node_down, 'give'))
+                        elif event.button == 5:
+                            print(f'Node {node_down} takes')
+                            g.take(node_down)
+                            moves.append((node_down, 'take'))
                     is_victory = g.is_victory()
 
             elif event.type == pygame.QUIT:
@@ -487,6 +512,6 @@ if __name__ == '__main__':
     my_font = pygame.font.SysFont('UASQUARE.ttf', 30)
     my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
 
-    # MenuWindow()
+    MenuWindow()
 
-    OpenGameWindow()
+    # OpenGameWindow()
