@@ -3,7 +3,7 @@ import pygame
 from Graph import DGGraph, load_game
 from itertools import count
 from math import sqrt
-from Button import Button, Panel, PANEL_HEIGHT
+from Button import Button, HoverTooltip, Panel, Counter, PANEL_HEIGHT
 import os
 from datetime import datetime
 from random import choice
@@ -19,6 +19,10 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.font.init()
 my_font = pygame.font.SysFont('UASQUARE.ttf', 30)
 my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
+my_font_hover = pygame.font.SysFont('UASQUARE.ttf', 26)
+
+with open('options.json', 'r') as f:
+    OPTIONS = json.load(f)
 
 
 def get_list_of_game_files():
@@ -51,8 +55,9 @@ def assemble_games_dataframe():
         data['num_of_plays'] = len(plays)
         data['best_score'] = best_score
         data['date_created'] = dat['info']['date_created']
-        df.append(data)
-    df.sort(key=lambda x : x['num_of_plays'])
+        df.append(data) 
+    df.sort(key=lambda x : x['num_of_plays']) # sort by the number of plays
+    # df.sort(key=lambda x : x['best_score'], reverse=True) # sort by the number of moves
     return df
 
 
@@ -215,6 +220,8 @@ def display_nodes_edges(G):
                          G.nodes[f]['pos'], 2)
 
 
+# windows
+
 def SandboxWindow():
     pygame.display.set_caption('Game creation')
     running = True
@@ -280,6 +287,58 @@ def SandboxWindow():
         pygame.display.update()
 
 
+def GenerateGameWindow():
+    pygame.display.set_caption('Game generation')
+    btn_back = Button(topleft=(10, 550), size=(100, 40), 
+                            text='Back', hover_text='go back')
+    btn_generate = Button(topleft=(10, 500), size=(120, 40), 
+                            text='Generate', hover_text='generate a new graph')
+    cnt_nodes = Counter(topleft=(10, 50), size=(100, 40), 
+                            text='Nodes', hover_text='enter a number of nodes')
+    cnt_edges = Counter(topleft=(10, 100), size=(100, 40), 
+                            text='Edges', hover_text='enter a number of edges')
+    hover = HoverTooltip(objects=[btn_back, btn_generate, cnt_nodes, cnt_edges])
+
+    running_generation = True
+    while running_generation:
+        screen.fill('black')
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                down = pygame.mouse.get_pos()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                up = pygame.mouse.get_pos()
+                if event.button == 1:
+                    if btn_back.hovering(up):
+                        running_generation = False
+                    elif btn_generate.hovering(up):
+                        print('Game generated')
+                    elif cnt_nodes.hovering(up, press=True):
+                        print('Value is', cnt_nodes.value)
+                    elif cnt_edges.hovering(up, press=True):
+                        print('Value is', cnt_edges.value)
+                elif event.button in {4,5}:
+                    cnt_nodes.hovering(up, add=1 if event.button == 4 else -1)
+                    cnt_edges.hovering(up, add=1 if event.button == 4 else -1)
+            elif event.type == pygame.QUIT:
+                running_generation = False
+        
+
+        btn_back.draw(screen, my_font)
+        btn_generate.draw(screen, my_font)
+        cnt_nodes.draw(screen, my_font)
+        cnt_edges.draw(screen, my_font)
+
+        # hover tooltips
+        mouse = pygame.mouse.get_pos()
+        hover.display(mouse, screen, my_font_hover)
+
+        # blue outline
+        pygame.draw.rect(screen, (38, 205, 235), [0, 0, WIDTH, HEIGHT], 4)
+        # field
+        pygame.draw.rect(screen, (0, 0, 255), [WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
+        pygame.display.update()
+
+
 def OpenGameWindow():
     print('OpenGameWindow is opened')
     files_rect = pygame.Rect((10, 10), (780, 530))
@@ -310,6 +369,7 @@ def OpenGameWindow():
                         update = True
                     if btn_generate_game.hovering(up):
                         print('Nothing yet')
+                        GenerateGameWindow()
                     elif scroll_down_pressed or scroll_up_pressed:
                         start, finish = shift_panels(
                             start, finish, shift=(-1 if scroll_down_pressed else 1), number_of_panels=len(panels))
@@ -453,19 +513,23 @@ def GameWindow(g, filename=None):
 
 
 def OptionsWindow():
-    pass
+    print(OPTIONS)
 
 
 def MenuWindow():
     pygame.display.set_caption('Menu')
-    btn_play = Button((200, 50), (400, 100), 'PLAY')
-    btn_play_create = Button((200, 50), (130, 100), 'create', is_active=False, is_visible=False)
-    btn_play_open = Button((335, 50), (130, 100), 'open', is_active=False, is_visible=False)
-    btn_play_back = Button((470, 50), (130, 100), 'back', is_active=False, is_visible=False)
-    btn_options = Button((200, 250), (400, 100), 'OPTIONS')
-    btn_exit = Button((200, 450), (400, 100), 'EXIT')
+    btn_play = Button((200, 50), (400, 100), 'PLAY', hover_text='splits into create/open/back')
+    btn_play_create = Button((200, 50), (130, 100), 'create', is_active=False, 
+                                is_visible=False, hover_text='click to open a sandbox')
+    btn_play_open = Button((335, 50), (130, 100), 'open', is_active=False, 
+                                is_visible=False, hover_text='open an existing game')
+    btn_play_back = Button((470, 50), (130, 100), 'back', is_active=False, is_visible=False, hover_text='collapse')
+    btn_options = Button((200, 250), (400, 100), 'OPTIONS', hover_text='lol indeed')
+    btn_exit = Button((200, 450), (400, 100), 'EXIT', hover_text='you can click the red X btn though')
+    hover = HoverTooltip(objects=[btn_play, btn_options, btn_exit, btn_play_back, 
+                                        btn_play_create, btn_play_open])
 
-    show_play_subbtns = False
+    lol = False
 
     running_menu = True
     while running_menu:
@@ -486,7 +550,8 @@ def MenuWindow():
                     btn_play_back.is_visible = True
                 elif btn_options.hovering(up):
                     # OptionsWindow: show_nodes_ids
-                    pass
+                    lol = not lol
+                    print(OPTIONS)
                 elif btn_exit.hovering(up):
                     running_menu = False
                     # pygame.quit()
@@ -505,17 +570,23 @@ def MenuWindow():
                 elif btn_play_open.hovering(up):
                     OpenGameWindow()
                     pygame.display.set_caption('Menu')
-                # print(up)
             elif event.type == pygame.QUIT:
                 running_menu = False
+                
 
         btn_play_create.draw(screen, my_font)
         btn_play_open.draw(screen, my_font)
         btn_play_back.draw(screen, my_font)
         btn_play.draw(screen, my_font)
 
+        # hover tooltips
+        mouse = pygame.mouse.get_pos()
+        hover.display(mouse, screen, my_font_hover)
+
         # white outline
         pygame.draw.rect(screen, (255, 255, 255), [0, 0, WIDTH, HEIGHT], 4)
+        if lol:
+            screen.blit(my_font.render('lol', False, (255,255,255)), (500, 260))
 
         btn_options.draw(screen, my_font)
         btn_exit.draw(screen, my_font)
@@ -524,3 +595,4 @@ def MenuWindow():
 
 if __name__ == '__main__':
     MenuWindow()
+    # GenerateGameWindow

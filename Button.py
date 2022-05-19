@@ -1,13 +1,15 @@
 import pygame
 
 class Button():
-    def __init__(self, topleft, size, text, is_active=True, is_visible=True):
+    def __init__(self, topleft, size, text, is_active=True, 
+                    is_visible=True, hover_text='this is helpful'):
         self.topleft = topleft
         self.size = size
         self.is_active = is_active
         self.text = text
         self.rect = pygame.Rect(topleft, size)
         self.is_visible = is_visible
+        self.hover_text = hover_text
 
 
     def draw(self, screen, font):
@@ -19,11 +21,47 @@ class Button():
             position = x + wi//8, y + he//4
             screen.blit(font.render(self.text, False, color), position)
     
-    def hovering(self, pos): 
+    def hovering(self, pos, press=True): 
+        res = self.rect.collidepoint(pos) and self.is_active
+        if res and press:
+            print(f'Button [{self.text}] is pressed')
+        return res
+
+class Counter(Button):
+    def __init__(self, topleft, size, text, is_active=True, is_visible=True, hover_text='a counter', value=0):
+        super().__init__(topleft, size, text, is_active, is_visible, hover_text)
+        self.value = value
+    
+    def hovering(self, pos, press=False, add=0):
         res = self.rect.collidepoint(pos) and self.is_active
         if res:
-            print(f'btn {self.text} is pressed')
+            if press:
+                print(f'Counter [{self.text}] is pressed')
+            self.value += add
         return res
+    
+    def draw(self, screen, font):
+        x, y = self.topleft
+        wi, he = self.size
+        pos = x + int(1.1*wi), y + he//4
+        screen.blit(font.render(str(self.value), False, (255, 0, 0)), pos)
+        return super().draw(screen, font)
+    
+
+class HoverTooltip():
+    def __init__(self, objects, topleft=(5,5)):
+        self.objects = objects
+        self.topleft = topleft
+        self.text = ''
+
+    def display(self, pos, screen, font):
+        for obj in self.objects:
+            if obj.hovering(pos, press=False):
+                self.text = obj.hover_text
+                screen.blit(font.render(self.text, False, (200, 200, 255)), self.topleft)
+                return
+        self.text = ''
+        
 
 PANEL_HEIGHT = 50
 
