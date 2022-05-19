@@ -90,7 +90,7 @@ def load_game(filename):
     return G
 
 
-def generate_game(number_of_nodes) -> DGGraph:
+def generate_game(number_of_nodes : int, number_of_edges : int) -> DGGraph:
     '''
     This would create a graph representing a playable game (i.e. bank>=genus)
     '''

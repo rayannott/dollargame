@@ -183,6 +183,11 @@ def decrease_value(G, node):
     G.change_value(node, increase=False)
 
 
+def display_prev_stats():
+    # TODO: if opened an existing game, display its name and previous best score
+    pass
+
+
 def display_labels(G, sandbox, num_moves=None):
     # node values
     for n in G.nodes():
@@ -190,14 +195,18 @@ def display_labels(G, sandbox, num_moves=None):
         text_node_vals = my_font_bigger.render(str(current_value), False,
                                                WHITE if current_value >= 0 else RED)
         pos = G.nodes[n]['pos']
-        screen.blit(text_node_vals,
-                    (pos[0]+20, pos[1]+12))
+        screen.blit(text_node_vals, (pos[0]+20, pos[1]+12))
+        if OPTIONS['show_node_ids']:
+            text_node_indices = my_font.render(str(n), False, (225, 240, 129))
+            screen.blit(text_node_indices, (pos[0]-15, pos[1]-8))
+    
     # display parameters (genus, bank) and indicator
     text_params1 = my_font.render(f'GENUS = {G.genus}', False, WHITE)
     text_params2 = my_font.render(f'BANK = {G.bank}', False, WHITE)
-
     screen.blit(text_params1, (20, 40))
     screen.blit(text_params2, (20, 60))
+
+    # sandbox if .. True else game
     if sandbox:
         valid = is_game_valid(G)
         text_proceed = my_font.render(
@@ -220,7 +229,9 @@ def display_nodes_edges(G):
                          G.nodes[f]['pos'], 2)
 
 
-# windows
+
+
+# ----------------WINDOWS --------------------
 
 def SandboxWindow():
     pygame.display.set_caption('Game creation')
@@ -513,7 +524,65 @@ def GameWindow(g, filename=None):
 
 
 def OptionsWindow():
-    print(OPTIONS)
+    pygame.display.set_caption('Options')
+
+    show_indices = OPTIONS['show_node_ids']
+    dummy = OPTIONS['dummy']
+
+    btn_back = Button(topleft=(10, 550), size=(100, 40), 
+                            text='Back', hover_text='go back to the menu (you clicked the save btn, right?)')
+    btn_save = Button(topleft=(10, 500), size=(120, 40), 
+                            text='Save', hover_text='saves the changes')
+    btn_show_ind = Button(topleft=(15, 30), size=(120, 40), 
+                            text='Indices', hover_text='when set to True shows nodes indices')
+    cnt_dummy = Counter(topleft=(15, 80), size=(120, 40), 
+                            text='Nodes', value=dummy, hover_text='dummy counter')
+    
+    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, cnt_dummy])
+
+    running_options = True
+    while running_options:
+        screen.fill('black')
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                down = pygame.mouse.get_pos()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                up = pygame.mouse.get_pos()
+                if event.button == 1:
+                    if btn_back.hovering(up):
+                        running_options = False
+                    elif btn_save.hovering(up):
+                        print('Settings saved')
+                        OPTIONS['show_node_ids'] = show_indices
+                        OPTIONS['dummy'] = dummy
+                        with open('options.json', 'w') as f:
+                            json.dump(OPTIONS, f)
+                    elif btn_show_ind.hovering(up):
+                        show_indices = not show_indices
+                elif event.button in {4,5}:
+                    cnt_dummy.hovering(up, add=1 if event.button == 4 else -1)
+                    dummy = cnt_dummy.value
+            elif event.type == pygame.QUIT:
+                running_options = False
+        
+
+        btn_back.draw(screen, my_font)
+        btn_save.draw(screen, my_font)
+        btn_show_ind.draw(screen, my_font)
+        cnt_dummy.draw(screen, my_font)
+
+        # hover tooltips
+        mouse = pygame.mouse.get_pos()
+        hover.display(mouse, screen, my_font_hover)
+
+        # some text
+        x, y = btn_show_ind.topleft
+        screen.blit(my_font.render(str(show_indices), False, GREEN if show_indices else RED), 
+                    (x + btn_show_ind.size[0] + 5, y + 13))
+
+        # light yellow outline
+        pygame.draw.rect(screen, (225, 240, 129), [0, 0, WIDTH, HEIGHT], 4)
+        pygame.display.update()
 
 
 def MenuWindow():
@@ -550,8 +619,9 @@ def MenuWindow():
                     btn_play_back.is_visible = True
                 elif btn_options.hovering(up):
                     # OptionsWindow: show_nodes_ids
-                    lol = not lol
-                    print(OPTIONS)
+                    # lol = not lol
+                    # print(OPTIONS)
+                    OptionsWindow()
                 elif btn_exit.hovering(up):
                     running_menu = False
                     # pygame.quit()
@@ -596,3 +666,4 @@ def MenuWindow():
 if __name__ == '__main__':
     MenuWindow()
     # GenerateGameWindow
+    # OptionsWindow()
