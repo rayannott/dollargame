@@ -44,12 +44,12 @@ class Counter(Button):
         x, y = self.topleft
         wi, he = self.size
         pos = x + int(1.1*wi), y + he//4
-        screen.blit(font.render(str(self.value), False, (255, 0, 0)), pos)
+        screen.blit(font.render(str(self.value), False, (45, 113, 168)), pos)
         return super().draw(screen, font)
     
 
 class HoverTooltip():
-    def __init__(self, objects, topleft=(5,5)):
+    def __init__(self, objects, topleft=(7,7)):
         self.objects = objects
         self.topleft = topleft
         self.text = ''
