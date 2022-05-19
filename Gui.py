@@ -7,6 +7,7 @@ from Button import Button, HoverTooltip, Panel, Counter, PANEL_HEIGHT
 import os
 from datetime import datetime
 from random import choice
+from copy import deepcopy
 
 WHITE, GREEN, RED = (255, 255, 255), (0, 255, 0), (255, 0, 0)
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
@@ -56,8 +57,10 @@ def assemble_games_dataframe():
         data['best_score'] = best_score
         data['date_created'] = dat['info']['date_created']
         df.append(data) 
-    df.sort(key=lambda x : x['num_of_plays']) # sort by the number of plays
-    # df.sort(key=lambda x : x['best_score'], reverse=True) # sort by the number of moves
+    if OPTIONS['sort_by'] == 'date_created':
+        df.sort(key=lambda x : datetime.strptime(x['date_created'], '%d/%m/%Y %H:%M:%S'), reverse=True)
+    elif OPTIONS['sort_by'] == 'num_of_plays':
+        df.sort(key=lambda x : x['num_of_plays']) # sort by the number of plays
     return df
 
 
@@ -110,6 +113,7 @@ def save_finished_game(g, moves, filename):
     })
     with open(f'games/{filename}', 'w') as fr:
         json.dump(dat, fr)
+    return filename
 
 
 def save_new_game(g):
@@ -183,9 +187,11 @@ def decrease_value(G, node):
     G.change_value(node, increase=False)
 
 
-def display_prev_stats():
+def display_prev_stats(game_number, best=None):
     # TODO: if opened an existing game, display its name and previous best score
-    pass
+    if not best is None:
+        screen.blit(my_font.render(f'Best = {best}', False, GREEN), (20, 130))
+    screen.blit(my_font.render(f'Game #{game_number}', False, GREEN), (20, 110))
 
 
 def display_labels(G, sandbox, num_moves=None):
@@ -304,9 +310,9 @@ def GenerateGameWindow():
                             text='Back', hover_text='go back')
     btn_generate = Button(topleft=(10, 500), size=(120, 40), 
                             text='Generate', hover_text='generate a new graph')
-    cnt_nodes = Counter(topleft=(10, 50), size=(100, 40), 
+    cnt_nodes = Counter(topleft=(10, 30), size=(100, 40), 
                             text='Nodes', hover_text='enter a number of nodes')
-    cnt_edges = Counter(topleft=(10, 100), size=(100, 40), 
+    cnt_edges = Counter(topleft=(10, 80), size=(100, 40), 
                             text='Edges', hover_text='enter a number of edges')
     hover = HoverTooltip(objects=[btn_back, btn_generate, cnt_nodes, cnt_edges])
 
@@ -379,7 +385,6 @@ def OpenGameWindow():
                         GameWindow(g, filename)
                         update = True
                     if btn_generate_game.hovering(up):
-                        print('Nothing yet')
                         GenerateGameWindow()
                     elif scroll_down_pressed or scroll_up_pressed:
                         start, finish = shift_panels(
@@ -389,7 +394,8 @@ def OpenGameWindow():
                         # here we handle clicking the panels
                         panel_number = what_rect_hover(up)
                         if panel_number is not None:
-                            game_number = panels9[panel_number].data['game_number']
+                            opened_game =  panels9[panel_number].data
+                            game_number = opened_game['game_number']
                             filename = f'{game_number}.json'
                             g = load_game(filename)
                             GameWindow(g, filename)
@@ -436,9 +442,18 @@ def OpenGameWindow():
 
 
 def GameWindow(g, filename=None):
-    from copy import deepcopy
-    val = filename or 'New'
-    print(f'{val} game is started')
+    if filename is None:
+        # in case the filename is so far unknown
+        val = None
+        best = None
+    else:
+        # in case an existing game is opened
+        val = int(filename[:-5])
+        with open(f'games/{val}.json',) as f:
+            dat = json.load(f)
+        best = min([len(play['moves']) for play in dat['plays']])
+    print(f'Game #{val} is started')
+
     pygame.display.set_caption('Game')
     field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
     btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save')
@@ -464,8 +479,9 @@ def GameWindow(g, filename=None):
                                 filename = save_new_game(g)
                                 btn_save.is_active = False
                             elif is_victory:
-                                save_finished_game(g_not_solved, moves, filename)
+                                filename = save_finished_game(g_not_solved, moves, filename)
                                 btn_save.is_active = False
+                            val = int(filename[:-5])
                         elif btn_back.hovering(up):
                             running_game = False
                             break
@@ -506,12 +522,13 @@ def GameWindow(g, filename=None):
             print('You won!')
             btn_save.is_active = True
             only_once = False
-
+        
         if moves and not is_victory:
             btn_save.is_active = False
-
+        
         btn_save.draw(screen, my_font)
         btn_back.draw(screen, my_font)
+        display_prev_stats(val, best)
         display_labels(g, sandbox=False, num_moves=len(moves))
         display_nodes_edges(g)
         # orange outline (when not solved)
@@ -535,10 +552,12 @@ def OptionsWindow():
                             text='Save', hover_text='saves the changes')
     btn_show_ind = Button(topleft=(15, 30), size=(120, 40), 
                             text='Indices', hover_text='when set to True shows nodes indices')
-    cnt_dummy = Counter(topleft=(15, 80), size=(120, 40), 
-                            text='Nodes', value=dummy, hover_text='dummy counter')
+    btn_sort_by = Button(topleft=(15, 80), size=(120, 40), 
+                            text='Sortby', hover_text='how...')
+    cnt_dummy = Counter(topleft=(15, 130), size=(120, 40), 
+                            text='dummy', value=dummy, hover_text='dummy counter')
     
-    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, cnt_dummy])
+    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, btn_sort_by, cnt_dummy])
 
     running_options = True
     while running_options:
@@ -559,6 +578,9 @@ def OptionsWindow():
                             json.dump(OPTIONS, f)
                     elif btn_show_ind.hovering(up):
                         show_indices = not show_indices
+                    elif btn_sort_by.hovering(up):
+                        print('sortby')
+                        # TODO: ...
                 elif event.button in {4,5}:
                     cnt_dummy.hovering(up, add=1 if event.button == 4 else -1)
                     dummy = cnt_dummy.value
@@ -569,6 +591,7 @@ def OptionsWindow():
         btn_back.draw(screen, my_font)
         btn_save.draw(screen, my_font)
         btn_show_ind.draw(screen, my_font)
+        btn_sort_by.draw(screen, my_font)
         cnt_dummy.draw(screen, my_font)
 
         # hover tooltips
@@ -618,10 +641,9 @@ def MenuWindow():
                     btn_play_open.is_visible = True
                     btn_play_back.is_visible = True
                 elif btn_options.hovering(up):
-                    # OptionsWindow: show_nodes_ids
-                    # lol = not lol
-                    # print(OPTIONS)
+                    print('Options')
                     OptionsWindow()
+                    pygame.display.set_caption('Menu')
                 elif btn_exit.hovering(up):
                     running_menu = False
                     # pygame.quit()
@@ -665,5 +687,3 @@ def MenuWindow():
 
 if __name__ == '__main__':
     MenuWindow()
-    # GenerateGameWindow
-    # OptionsWindow()
