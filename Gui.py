@@ -53,7 +53,7 @@ def assemble_games_dataframe():
         else:
             best_score = 'not solved'
         data['game_number'] = int(file[:-5])
-        data['difficulty'] = sum(values) - genus
+        data['graph'] = (len(graph['values']), len(graph['edges']))
         data['num_of_plays'] = len(plays)
         data['best_score'] = best_score
         data['date_created'] = dat['info']['date_created']
@@ -191,7 +191,6 @@ def decrease_value(G, node):
 
 
 def display_prev_stats(game_number, best=None):
-    # TODO: if opened an existing game, display its name and previous best score
     if not best is None:
         screen.blit(my_font.render(f'Best = {best}', False, GREEN), (20, 130))
     screen.blit(my_font.render(f'Game #{game_number}', False, GREEN), (20, 110))
@@ -207,7 +206,7 @@ def display_labels(G, sandbox, num_moves=None):
         screen.blit(text_node_vals, (pos[0]+20, pos[1]+12))
         if OPTIONS['show_node_ids']:
             text_node_indices = my_font.render(str(n), False, (225, 240, 129))
-            screen.blit(text_node_indices, (pos[0]-15, pos[1]-8))
+            screen.blit(text_node_indices, (pos[0]-36, pos[1]-8))
     
     # display parameters (genus, bank) and indicator
     text_params1 = my_font.render(f'GENUS = {G.genus}', False, WHITE)
@@ -429,7 +428,7 @@ def OpenGameWindow():
         display_panels(panels9)
         screen.blit(my_font.render('Game #', False,
                                    (255, 255, 255)), (15+10, 15))
-        screen.blit(my_font.render('Difficulty', False,
+        screen.blit(my_font.render('Nodes/Edges', False,
                                    (255, 255, 255)), (15+130, 15))
         screen.blit(my_font.render('# of plays', False,
                                    (255, 255, 255)), (15+270, 15))

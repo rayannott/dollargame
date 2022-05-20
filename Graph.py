@@ -94,6 +94,6 @@ def generate_game(number_of_nodes : int, number_of_edges : int) -> DGGraph:
     '''
     This would create a graph representing a playable game (i.e. bank>=genus)
     '''
-    # how to generate a random connected graph?
+    # TODO: how to generate a random connected graph?
     
     pass
