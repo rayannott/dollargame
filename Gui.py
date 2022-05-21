@@ -248,10 +248,12 @@ def SandboxWindow():
 
     G = DGGraph()
     cnt = count(0)
-    btn_proceed = Button(topleft=(30, 450), size=(100, 40), text='Proceed')
-    btn_proceed.is_active = is_game_valid(G)
-    btn_discard = Button(topleft=(30, 510), size=(100, 40), text='Discard')
-
+    btn_proceed = Button(topleft=(30, 450), size=(100, 40), 
+                        text='Proceed', is_active=False, hover_text='play!')
+    btn_discard = Button(topleft=(30, 510), size=(100, 40), text='Discard',
+                        hover_text='go back (loses progress)')
+    hover = HoverTooltip(objects=[btn_proceed, btn_discard])
+    
     # Game creation loop
     while running:
         screen.fill('black')
@@ -292,11 +294,16 @@ def SandboxWindow():
 
             elif event.type == pygame.QUIT:
                 running = False
-
+        btn_proceed.is_active = is_game_valid(G)
         btn_proceed.draw(screen, my_font)
         btn_discard.draw(screen, my_font)
         display_labels(G, sandbox=True)
         display_nodes_edges(G)
+
+        # hover tooltips
+        mouse = pygame.mouse.get_pos()
+        hover.display(mouse, screen, my_font_hover)
+
         # purple outline
         pygame.draw.rect(screen, (213, 88, 251), [0, 0, WIDTH, HEIGHT], 4)
         # sandbox field
