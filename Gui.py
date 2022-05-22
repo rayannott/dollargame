@@ -1,13 +1,15 @@
 import json
 import pygame
-from Graph import DGGraph, load_game
+from graph import DGGraph, load_game
 from itertools import count
 from math import sqrt
-from Button import Button, HoverTooltip, Panel, Counter, PANEL_HEIGHT
+from ui_elements import Button, HoverTooltip, Panel, Counter, PANEL_HEIGHT
 import os
 from datetime import datetime
 from random import choice
 from copy import deepcopy
+
+# renamed file
 
 WHITE, GREEN, RED = (255, 255, 255), (0, 255, 0), (255, 0, 0)
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
