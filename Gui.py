@@ -310,7 +310,7 @@ def SandboxWindow():
         pygame.draw.rect(screen, (213, 88, 251), [0, 0, WIDTH, HEIGHT], 4)
         # sandbox field
         pygame.draw.rect(screen, (0, 0, 255), [
-                         WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
+                        WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
 
 
