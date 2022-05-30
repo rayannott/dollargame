@@ -1,5 +1,7 @@
 import networkx as nx
 import json
+import numpy as np
+from datetime import datetime
 
 
 class DGGraph(nx.Graph):
@@ -90,10 +92,48 @@ def load_game(filename):
     return G
 
 
-def generate_game(number_of_nodes : int, number_of_edges : int) -> DGGraph:
-    '''
-    This would create a graph representing a playable game (i.e. bank>=genus)
-    '''
-    # TODO: how to generate a random connected graph?
+# graph generation
+
+def random_connected_graph(n):
+    done = False
+    while not done:
+        G = nx.binomial_graph(n, 0.25)
+        done = nx.is_connected(G)
+    # TODO: check if planar (how to generate a connected planar graph?)
+    return G
+
+def random_list_of_values(n, bank=0):
+    # TODO: generate a list of n integers totalling to bank
+    a = np.random.randint(0, 5, n)
+    return a.tolist()
+
+def transform_positions(positions):
+    # maps positions from networkx layout function to [210, 750] x [50, 550]
+    pos = np.array(list(positions.values()))
+    mins = np.min(pos, axis=0)
+    delta = np.tile(mins, (len(positions), 1))
+    pos -= delta
+    pos /= np.tile(np.max(pos, axis=0), (len(positions), 1))
     
-    pass
+    pos *= np.tile([540, 500], (len(positions), 1))
+    pos += np.tile([210, 50], (len(positions), 1))
+    pos = np.around(pos)
+    res = dict(zip(positions.keys(), pos.tolist()))
+    return res
+
+def generate_game(number_of_nodes: int, bank_minus_genus=0) -> DGGraph:
+    '''
+    This function creates a graph representing a playable game (i.e. bank>=genus)
+    '''
+    G = random_connected_graph(number_of_nodes)
+    posit = nx.planar_layout(G)
+    genus = G.number_of_edges() - G.number_of_nodes() + 1
+    values = random_list_of_values(number_of_nodes)
+    dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    posit = transform_positions(posit)
+    DG = DGGraph(info={'date_created': dt_string})
+    for n in range(number_of_nodes):
+        DG.add_node(n, val=values[n], pos=posit[n])
+    for e in G.edges():
+        DG.add_edge(*e)
+    return DG
