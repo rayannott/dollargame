@@ -104,8 +104,10 @@ def random_connected_graph(n):
 
 def random_list_of_values(n, bank=0):
     # TODO: generate a list of n integers totalling to bank
-    a = np.random.randint(0, 5, n)
-    return a.tolist()
+    while True:
+        a = np.random.randint(-4, 5, n)
+        if sum(a) == bank:
+            return a.tolist()
 
 def transform_positions(positions):
     # maps positions from networkx layout function to [210, 750] x [50, 550]
@@ -128,7 +130,7 @@ def generate_game(number_of_nodes: int, bank_minus_genus=0) -> DGGraph:
     G = random_connected_graph(number_of_nodes)
     posit = nx.planar_layout(G)
     genus = G.number_of_edges() - G.number_of_nodes() + 1
-    values = random_list_of_values(number_of_nodes)
+    values = random_list_of_values(n=number_of_nodes, bank=genus + bank_minus_genus)
     dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     posit = transform_positions(posit)
     DG = DGGraph(info={'date_created': dt_string})
