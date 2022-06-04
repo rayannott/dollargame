@@ -271,7 +271,7 @@ def SandboxWindow():
 
 
 def GenerateGameWindow():
-    pygame.display.set_caption('Game generation')
+    pygame.display.set_caption('Generate game...')
     btn_back = Button(topleft=(10, 550), size=(100, 40), 
                             text='Back', hover_text='go back')
     btn_generate = Button(topleft=(10, 500), size=(120, 40), 
@@ -352,6 +352,7 @@ def OpenGameWindow():
                         update = True
                     if btn_generate_game.hovering(up):
                         GenerateGameWindow()
+                        pygame.display.set_caption('Open game...')
                     elif scroll_down_pressed or scroll_up_pressed:
                         start, finish = shift_panels(
                             start, finish, shift=(-1 if scroll_down_pressed else 1), number_of_panels=len(panels))
