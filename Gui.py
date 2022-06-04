@@ -1,6 +1,6 @@
 import json
 import pygame
-from graph import DGGraph, load_game
+from Graph import DGGraph, load_game, generate_game
 from utils import *
 from itertools import count
 from math import sqrt
@@ -17,6 +17,7 @@ RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIG
          for ind in range(9)]
 WIDTH, HEIGHT = 800, 600
 SORTBY_LIST = ['date_created', 'num_of_plays', 'best_score']
+LAYOUT_LIST = ['planar', 'shell']
 
 pygame_icon = pygame.image.load('icon.png')
 pygame.display.set_icon(pygame_icon)
@@ -154,33 +155,29 @@ def display_prev_stats(game_number, best=None):
     screen.blit(my_font.render(f'Game #{game_number}', False, GREEN), (20, 110))
 
 
-def display_labels(G, sandbox, num_moves=None):
+def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
     # node values
     for n in G.nodes():
         current_value = G.nodes[n]['val']
-        text_node_vals = my_font_bigger.render(str(current_value), False,
-                                               WHITE if current_value >= 0 else RED)
         pos = G.nodes[n]['pos']
-        screen.blit(text_node_vals, (pos[0]+20, pos[1]+12))
+        screen.blit(my_font_bigger.render(str(current_value), False,
+                    WHITE if current_value >= 0 else RED), (pos[0]+20, pos[1]+12))
         if OPTIONS['show_node_ids']:
             text_node_indices = my_font.render(str(n), False, (225, 240, 129))
             screen.blit(text_node_indices, (pos[0]-36, pos[1]-8))
     
     # display parameters (genus, bank) and indicator
-    text_params1 = my_font.render(f'GENUS = {G.genus}', False, WHITE)
-    text_params2 = my_font.render(f'BANK = {G.bank}', False, WHITE)
-    screen.blit(text_params1, (20, 40))
-    screen.blit(text_params2, (20, 60))
+    shift = 90 if y_shift_genus_bank else 0
+    screen.blit(my_font.render(f'GENUS = {G.genus}', False, WHITE), (20, 40 + shift))
+    screen.blit(my_font.render(f'BANK = {G.bank}', False, WHITE), (20, 60 + shift))
 
     # sandbox if .. True else game
     if sandbox:
         valid = is_game_valid(G)
-        text_proceed = my_font.render(
-            'valid' if valid else 'invalid', False, GREEN if valid else RED)
-        screen.blit(text_proceed, (20, 80))
-    else:
-        text_moves = my_font.render(f'MOVES = {num_moves}', False, WHITE)
-        screen.blit(text_moves, (20, 80))
+        screen.blit(my_font.render(
+            'valid' if valid else 'invalid', False, GREEN if valid else RED), (20, 80))
+    elif not y_shift_genus_bank:
+        screen.blit(my_font.render(f'MOVES = {num_moves}', False, WHITE), (20, 80 + shift))
 
 
 def display_nodes_edges(G):
@@ -276,11 +273,18 @@ def GenerateGameWindow():
                             text='Back', hover_text='go back')
     btn_generate = Button(topleft=(10, 500), size=(120, 40), 
                             text='Generate', hover_text='generate a new graph')
-    cnt_nodes = Counter(topleft=(10, 30), size=(100, 40), 
+    btn_proceed = Button(topleft=(10, 450), size=(120, 40), is_active=False, 
+                            text='Proceed', hover_text='pick this game')
+    cnt_nodes = Counter(topleft=(10, 30), size=(100, 40), value=6,
                             text='Nodes', hover_text='enter a number of nodes')
-    cnt_edges = Counter(topleft=(10, 80), size=(100, 40), 
-                            text='Edges', hover_text='enter a number of edges')
-    hover = HoverTooltip(objects=[btn_back, btn_generate, cnt_nodes, cnt_edges], topleft=(165, 570))
+    cnt_b_minus_g = Counter(topleft=(10, 80), size=(100, 40), value=2,
+                            text='B-G', hover_text='bank - genus')
+    
+    hover = HoverTooltip(objects=[btn_back, btn_generate, btn_proceed, cnt_nodes, cnt_b_minus_g], 
+                        topleft=(165, 570))
+    
+    # current generated game to display
+    G = None
 
     running_generation = True
     while running_generation:
@@ -294,27 +298,38 @@ def GenerateGameWindow():
                     if btn_back.hovering(up):
                         running_generation = False
                     elif btn_generate.hovering(up):
-                        print('Game generated')
+                        print('Game was generated')
+                        # TODO: display games here in GenerateGameWindow, not in GameWindow
+                        G = generate_game(number_of_nodes=cnt_nodes.value, 
+                                            bank_minus_genus=cnt_b_minus_g.value, 
+                                            display_layout=OPTIONS['layout'])
+                        btn_proceed.is_active = True
+                    elif btn_proceed.hovering(up):
+                        GameWindow(G)
                     elif cnt_nodes.hovering(up, press=True):
                         print('Value is', cnt_nodes.value)
-                    elif cnt_edges.hovering(up, press=True):
-                        print('Value is', cnt_edges.value)
+                    elif cnt_b_minus_g.hovering(up, press=True):
+                        print('Value is', cnt_b_minus_g.value)
                 elif event.button in {4,5}:
                     cnt_nodes.hovering(up, add=1 if event.button == 4 else -1)
-                    cnt_edges.hovering(up, add=1 if event.button == 4 else -1)
+                    cnt_b_minus_g.hovering(up, add=1 if event.button == 4 else -1)
             elif event.type == pygame.QUIT:
                 running_generation = False
         
 
         btn_back.draw(screen, my_font)
         btn_generate.draw(screen, my_font)
+        btn_proceed.draw(screen, my_font)
         cnt_nodes.draw(screen, my_font)
-        cnt_edges.draw(screen, my_font)
-
+        cnt_b_minus_g.draw(screen, my_font)
+        
+        # display graph
+        if not G is None:
+            display_nodes_edges(G)
+            display_labels(G, sandbox=False, y_shift_genus_bank=True)
         # hover tooltips
         mouse = pygame.mouse.get_pos()
         hover.display(mouse, screen, my_font_hover)
-
         # blue outline
         pygame.draw.rect(screen, (38, 205, 235), [0, 0, WIDTH, HEIGHT], 4)
         # field
@@ -326,11 +341,10 @@ def OpenGameWindow():
     print('OpenGameWindow is opened')
     btn_back = Button((10, 550), (100, 40), 'back', hover_text='go back to menu')
     btn_randomgame = Button((120, 550), (100, 40), 'random', hover_text='start with a random saved game')
-    btn_generate_game = Button((230, 550), (110, 40), 'generate', hover_text='open a game generation window')
     btn_shiftdown = Button((745, 550), (45, 40), '  d')
     btn_shiftup = Button((690, 550), (45, 40), '  u')
     update = True
-    hover = HoverTooltip(objects=[btn_back, btn_randomgame, btn_generate_game], topleft=(350, 570))
+    hover = HoverTooltip(objects=[btn_back, btn_randomgame], topleft=(350, 570))
 
     running_opengame = True
     while running_opengame:
@@ -350,10 +364,7 @@ def OpenGameWindow():
                         g, filename = get_random_game()
                         GameWindow(g, filename)
                         update = True
-                    if btn_generate_game.hovering(up):
-                        GenerateGameWindow()
-                        pygame.display.set_caption('Open game...')
-                    elif scroll_down_pressed or scroll_up_pressed:
+                    if scroll_down_pressed or scroll_up_pressed:
                         start, finish = shift_panels(
                             start, finish, shift=(-1 if scroll_down_pressed else 1), number_of_panels=len(panels))
                         panels9 = panels[start:finish]
@@ -389,7 +400,6 @@ def OpenGameWindow():
         btn_randomgame.draw(screen, my_font)
         btn_shiftdown.draw(screen, my_font)
         btn_shiftup.draw(screen, my_font)
-        btn_generate_game.draw(screen, my_font)
 
         display_panels(panels9)
         screen.blit(my_font.render('Game #', False,
@@ -519,7 +529,8 @@ def OptionsWindow():
     show_indices = OPTIONS['show_node_ids']
     sort_by = OPTIONS['sort_by']
     sort_by_num = SORTBY_LIST.index(sort_by)
-    print(sort_by_num)
+    layout = OPTIONS['layout']
+    layout_num = LAYOUT_LIST.index(layout)
     dummy = OPTIONS['dummy']
 
     btn_back = Button(topleft=(10, 550), size=(100, 40), 
@@ -527,13 +538,15 @@ def OptionsWindow():
     btn_save = Button(topleft=(10, 500), size=(120, 40), 
                             text='Save', hover_text='saves the changes')
     btn_show_ind = Button(topleft=(15, 30), size=(120, 40), 
-                            text='Indices', hover_text='when set to True shows nodes indices')
+                            text='Indices', hover_text='when set to True shows nodes\' indices')
     btn_sort_by = Button(topleft=(15, 80), size=(120, 40), 
-                            text='Sortby', hover_text='how...')
-    cnt_dummy = Counter(topleft=(15, 130), size=(120, 40), 
-                            text='dummy', value=dummy, hover_text='dummy counter')
+                            text='Sortby', hover_text='choose how to sort games in the game opening window')
+    btn_layout = Button(topleft=(15, 130), size=(120, 40), 
+                            text='Layout', hover_text='choose a layout for a generated game')
+    cnt_dummy = Counter(topleft=(15, 180), size=(120, 40), 
+                            text='dummy', value=dummy, hover_text='a dummy counter')
     
-    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, btn_sort_by, cnt_dummy])
+    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, btn_sort_by, btn_layout, cnt_dummy])
 
     running_options = True
     while running_options:
@@ -551,6 +564,7 @@ def OptionsWindow():
                         OPTIONS['show_node_ids'] = show_indices
                         OPTIONS['dummy'] = dummy
                         OPTIONS['sort_by'] = sort_by
+                        OPTIONS['layout'] = layout
                         with open('options.json', 'w') as f:
                             json.dump(OPTIONS, f)
                     elif btn_show_ind.hovering(up):
@@ -558,6 +572,9 @@ def OptionsWindow():
                     elif btn_sort_by.hovering(up):
                         sort_by_num += 1
                         sort_by = SORTBY_LIST[sort_by_num % len(SORTBY_LIST)]
+                    elif btn_layout.hovering(up):
+                        layout_num += 1
+                        layout = LAYOUT_LIST[layout_num % len(LAYOUT_LIST)]
                 elif event.button in {4,5}:
                     cnt_dummy.hovering(up, add=1 if event.button == 4 else -1)
                     dummy = cnt_dummy.value
@@ -569,6 +586,7 @@ def OptionsWindow():
         btn_save.draw(screen, my_font)
         btn_show_ind.draw(screen, my_font)
         btn_sort_by.draw(screen, my_font)
+        btn_layout.draw(screen, my_font)
         cnt_dummy.draw(screen, my_font)
 
         # hover tooltips
@@ -581,6 +599,8 @@ def OptionsWindow():
                     (x + btn_show_ind.size[0] + 5, y + 13))
         screen.blit(my_font.render(sort_by, False, WHITE), 
                     (x + btn_show_ind.size[0] + 5, y + 58))
+        screen.blit(my_font.render(layout, False, WHITE), 
+                    (x + btn_show_ind.size[0] + 5, y + 103))
 
         # light yellow outline
         pygame.draw.rect(screen, (225, 240, 129), [0, 0, WIDTH, HEIGHT], 4)
@@ -589,18 +609,13 @@ def OptionsWindow():
 
 def MenuWindow():
     pygame.display.set_caption('Menu')
-    btn_play = Button((200, 50), (400, 100), 'PLAY', hover_text='splits into create/open/back')
-    btn_play_create = Button((200, 50), (130, 100), 'create', is_active=False, 
-                                is_visible=False, hover_text='click to open a sandbox')
-    btn_play_open = Button((335, 50), (130, 100), 'open', is_active=False, 
-                                is_visible=False, hover_text='open an existing game')
-    btn_play_back = Button((470, 50), (130, 100), 'back', is_active=False, is_visible=False, hover_text='collapse')
-    btn_options = Button((200, 250), (400, 100), 'OPTIONS', hover_text='lol indeed')
-    btn_exit = Button((200, 450), (400, 100), 'EXIT', hover_text='you can click the red X btn though')
-    hover = HoverTooltip(objects=[btn_play, btn_options, btn_exit, btn_play_back, 
-                                        btn_play_create, btn_play_open])
-
-    lol = False
+    D, d, h = 50, 30, 76
+    btn_create = Button((200, D +(h+d)*0), (400, h), 'CREATE', hover_text='click to open a sandbox')
+    btn_generate = Button((200, D +(h+d)*1), (400, h), 'GENERATE', hover_text='generate a game')
+    btn_open = Button((200, D +(h+d)*2), (400, h), 'OPEN', hover_text='open an existing game')
+    btn_options = Button((200, D +(h+d)*3), (400, h), 'OPTIONS', hover_text='lol indeed')
+    btn_exit = Button((200, D +(h+d)*4), (400, h), 'EXIT', hover_text='you can click the red X btn though')
+    hover = HoverTooltip(objects=[btn_generate, btn_options, btn_exit, btn_create, btn_open])
 
     running_menu = True
     while running_menu:
@@ -610,15 +625,9 @@ def MenuWindow():
                 down = pygame.mouse.get_pos()
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
-                if btn_play.hovering(up):
-                    btn_play.is_active = False
-                    btn_play.is_visible = False
-                    btn_play_create.is_active = True
-                    btn_play_open.is_active = True
-                    btn_play_back.is_active = True
-                    btn_play_create.is_visible = True
-                    btn_play_open.is_visible = True
-                    btn_play_back.is_visible = True
+                if btn_generate.hovering(up):
+                    GenerateGameWindow()
+                    pygame.display.set_caption('Menu')
                 elif btn_options.hovering(up):
                     print('Options')
                     OptionsWindow()
@@ -626,29 +635,21 @@ def MenuWindow():
                 elif btn_exit.hovering(up):
                     running_menu = False
                     # pygame.quit()
-                elif btn_play_back.hovering(up):
-                    btn_play.is_active = True
-                    btn_play.is_visible = True
-                    btn_play_create.is_active = False
-                    btn_play_open.is_active = False
-                    btn_play_back.is_active = False
-                    btn_play_create.is_visible = False
-                    btn_play_open.is_visible = False
-                    btn_play_back.is_visible = False
-                elif btn_play_create.hovering(up):
+                elif btn_create.hovering(up):
                     SandboxWindow()
                     pygame.display.set_caption('Menu')
-                elif btn_play_open.hovering(up):
+                elif btn_open.hovering(up):
                     OpenGameWindow()
                     pygame.display.set_caption('Menu')
             elif event.type == pygame.QUIT:
                 running_menu = False
                 
 
-        btn_play_create.draw(screen, my_font)
-        btn_play_open.draw(screen, my_font)
-        btn_play_back.draw(screen, my_font)
-        btn_play.draw(screen, my_font)
+        btn_create.draw(screen, my_font)
+        btn_open.draw(screen, my_font)
+        btn_generate.draw(screen, my_font)
+        btn_options.draw(screen, my_font)
+        btn_exit.draw(screen, my_font)
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
@@ -656,11 +657,6 @@ def MenuWindow():
 
         # white outline
         pygame.draw.rect(screen, WHITE, [0, 0, WIDTH, HEIGHT], 4)
-        if lol:
-            screen.blit(my_font.render('lol', False, (255,255,255)), (500, 260))
-
-        btn_options.draw(screen, my_font)
-        btn_exit.draw(screen, my_font)
         pygame.display.update()
 
 

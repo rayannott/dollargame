@@ -98,15 +98,15 @@ def random_connected_graph(n):
     done = False
     while not done:
         G = nx.binomial_graph(n, 0.25)
-        done = nx.is_connected(G)
+        done = nx.is_connected(G) and nx.check_planarity(G)[0]
     # TODO: check if planar (how to generate a connected planar graph?)
     return G
 
 def random_list_of_values(n, bank=0):
-    # TODO: generate a list of n integers totalling to bank
+    # TODO: generate a list of n integers totalling to bank (fix this!)
     while True:
         a = np.random.randint(-4, 5, n)
-        if sum(a) == bank:
+        if sum(a) == bank and sum(a < 0):
             return a.tolist()
 
 def transform_positions(positions):
@@ -123,12 +123,16 @@ def transform_positions(positions):
     res = dict(zip(positions.keys(), pos.tolist()))
     return res
 
-def generate_game(number_of_nodes: int, bank_minus_genus=0) -> DGGraph:
+def generate_game(number_of_nodes: int, bank_minus_genus=0, display_layout='planar') -> DGGraph:
     '''
     This function creates a graph representing a playable game (i.e. bank>=genus)
     '''
     G = random_connected_graph(number_of_nodes)
-    posit = nx.planar_layout(G)
+    if display_layout == 'planar':
+        posit = nx.planar_layout(G)
+    elif display_layout == 'shell':
+        posit = nx.shell_layout(G)
+    
     genus = G.number_of_edges() - G.number_of_nodes() + 1
     values = random_list_of_values(n=number_of_nodes, bank=genus + bank_minus_genus)
     dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
