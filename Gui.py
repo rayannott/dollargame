@@ -5,12 +5,9 @@ from utils import *
 from itertools import count
 from math import sqrt
 from ui_elements import Button, HoverTooltip, Panel, Counter, PANEL_HEIGHT
-
 from datetime import datetime
 from random import choice
 from copy import deepcopy
-
-# renamed file
 
 WHITE, GREEN, RED = (255, 255, 255), (0, 255, 0), (255, 0, 0)
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
@@ -29,8 +26,6 @@ my_font_hover = pygame.font.SysFont('UASQUARE.ttf', 26)
 
 with open('options.json', 'r') as f:
     OPTIONS = json.load(f)
-
-
 
 
 def get_random_game():
@@ -298,8 +293,8 @@ def GenerateGameWindow():
                     if btn_back.hovering(up):
                         running_generation = False
                     elif btn_generate.hovering(up):
+                        # TODO: generate only winnable games
                         print('Game was generated')
-                        # TODO: display games here in GenerateGameWindow, not in GameWindow
                         G = generate_game(number_of_nodes=cnt_nodes.value, 
                                             bank_minus_genus=cnt_b_minus_g.value, 
                                             display_layout=OPTIONS['layout'])

@@ -103,11 +103,14 @@ def random_connected_graph(n):
     return G
 
 def random_list_of_values(n, bank=0):
-    # TODO: generate a list of n integers totalling to bank (fix this!)
-    while True:
-        a = np.random.randint(-4, 5, n)
-        if sum(a) == bank and sum(a < 0):
-            return a.tolist()
+    a = np.random.randint(-3, 4, n)
+    diff = sum(a) - bank
+    shifts = (2, 1) if diff > 0 else (-2, -1)
+    for i in range(abs(diff)):
+        inds = np.random.choice(np.arange(len(a)), 2)
+        a[inds[0]] -= shifts[0]
+        a[inds[1]] += shifts[1]
+    return a
 
 def transform_positions(positions):
     # maps positions from networkx layout function to [210, 750] x [50, 550]
