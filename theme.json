@@ -1,0 +1,15 @@
+{
+	"background": "#101213",
+	"red": "#F34A10", 
+	"field_outline": "#13BCF0",
+	"sandbox_outline": "#32B1EF",
+	"purple_outline": "#CC6EE9",
+	"playing_outline": "#E3AD1E",
+	"won_outline": "#5BF25A",
+	"options_outline": "#D2F264",
+	"open_game_panels": "#3CD761",
+	"hover_text": "#B0B0FA",
+	"counter_text": "#C255C8",
+	"button_inactive": "#080505",
+	"button_default": "#232323"
+}

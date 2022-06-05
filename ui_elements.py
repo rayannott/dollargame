@@ -1,5 +1,5 @@
 import pygame
-from utils import THEME
+from utils import THEME, PANEL_HEIGHT
 
 class Button():
     def __init__(self, topleft, size, text, is_active=True, 
@@ -12,7 +12,6 @@ class Button():
         self.is_visible = is_visible
         self.hover_text = hover_text
         self.bg_color = bg_color
-
 
     def draw(self, screen, font):
         def color_active(col):
@@ -29,6 +28,7 @@ class Button():
     def hovering(self, pos): 
         res = self.rect.collidepoint(pos) and self.is_active
         return res
+
 
 class Counter(Button):
     def __init__(self, topleft, size, text, is_active=True, is_visible=True, bounds=(-100, 100), bg_color=THEME['button_default'], hover_text='a counter', value=0):
@@ -65,14 +65,11 @@ class HoverTooltip():
         self.text = ''
         
 
-PANEL_HEIGHT = 50
-
 class Panel():
     # add hovertooltips for the panels??
     def __init__(self, data):
         self.data = data
 
-    
     def draw(self, topleft, screen, font):
         x, y = topleft
         pygame.draw.rect(screen, THEME['open_game_panels'], [x, y, 770, PANEL_HEIGHT], 4)
