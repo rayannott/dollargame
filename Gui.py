@@ -449,12 +449,12 @@ def GameWindow(g, filename=None):
                 if event.button == 1:
                     if not field_rect.collidepoint(up):
                         if btn_save.hovering(up):
-                            if not moves:
-                                print('Save empty game')
-                                filename = save_new_game(g)
-                                btn_save.is_active = False
-                            elif is_victory:
+                            if is_victory:
                                 filename = save_finished_game(g_not_solved, moves, filename)
+                                btn_save.is_active = False
+                            else:
+                                print('Save empty game')
+                                filename = save_new_game(g_not_solved)
                                 btn_save.is_active = False
                             val = int(filename[:-5])
                         elif btn_back.hovering(up):
@@ -497,9 +497,6 @@ def GameWindow(g, filename=None):
             print('You won!')
             btn_save.is_active = True
             only_once = False
-        
-        if moves and not is_victory:
-            btn_save.is_active = False
         
         btn_save.draw(screen, my_font)
         btn_back.draw(screen, my_font)
