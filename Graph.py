@@ -110,7 +110,10 @@ def random_list_of_values(n, bank=0):
         inds = np.random.choice(np.arange(len(a)), 2)
         a[inds[0]] -= shifts[0]
         a[inds[1]] += shifts[1]
-    return a
+    if not sum(a < 0):
+        a[0] += max(a)
+        a[-1] -= max(a)
+    return a.tolist()
 
 def transform_positions(positions):
     # maps positions from networkx layout function to [210, 750] x [50, 550]

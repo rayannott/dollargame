@@ -2,6 +2,14 @@ import json
 from datetime import datetime
 import os
 
+
+with open('options.json', 'r') as f:
+    OPTIONS = json.load(f)
+
+with open('theme.json', 'r') as f:
+    THEME = json.load(f)
+
+
 def get_list_of_game_files():
     return [el for el in os.listdir('games') if el.endswith('.json')]
 

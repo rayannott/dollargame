@@ -24,8 +24,6 @@ my_font = pygame.font.SysFont('UASQUARE.ttf', 30)
 my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
 my_font_hover = pygame.font.SysFont('UASQUARE.ttf', 26)
 
-with open('options.json', 'r') as f:
-    OPTIONS = json.load(f)
 
 
 def get_random_game():
@@ -206,7 +204,7 @@ def SandboxWindow():
     
     # Game creation loop
     while running:
-        screen.fill('black')
+        screen.fill(THEME['background'])
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 down = pygame.mouse.get_pos()
@@ -257,7 +255,7 @@ def SandboxWindow():
         # purple outline
         pygame.draw.rect(screen, (213, 88, 251), [0, 0, WIDTH, HEIGHT], 4)
         # sandbox field
-        pygame.draw.rect(screen, (0, 0, 255), [
+        pygame.draw.rect(screen, THEME['field_outline'], [
                         WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
 
@@ -270,10 +268,10 @@ def GenerateGameWindow():
                             text='Generate', hover_text='generate a new graph')
     btn_proceed = Button(topleft=(10, 450), size=(120, 40), is_active=False, 
                             text='Proceed', hover_text='pick this game')
-    cnt_nodes = Counter(topleft=(10, 30), size=(100, 40), value=6,
+    cnt_nodes = Counter(topleft=(10, 30), size=(100, 40), value=6, bounds=(3, 100),
                             text='Nodes', hover_text='enter a number of nodes')
-    cnt_b_minus_g = Counter(topleft=(10, 80), size=(100, 40), value=2,
-                            text='B-G', hover_text='bank - genus')
+    cnt_b_minus_g = Counter(topleft=(10, 80), size=(100, 40), value=2, bounds=(0, 100),
+                            text='B-G', hover_text='bank - genus; 0 is the most difficult (no extra dollars)')
     
     hover = HoverTooltip(objects=[btn_back, btn_generate, btn_proceed, cnt_nodes, cnt_b_minus_g], 
                         topleft=(165, 570))
@@ -283,7 +281,7 @@ def GenerateGameWindow():
 
     running_generation = True
     while running_generation:
-        screen.fill('black')
+        screen.fill(THEME['background'])
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 down = pygame.mouse.get_pos()
@@ -294,17 +292,16 @@ def GenerateGameWindow():
                         running_generation = False
                     elif btn_generate.hovering(up):
                         # TODO: generate only winnable games
-                        print('Game was generated')
-                        G = generate_game(number_of_nodes=cnt_nodes.value, 
-                                            bank_minus_genus=cnt_b_minus_g.value, 
-                                            display_layout=OPTIONS['layout'])
-                        btn_proceed.is_active = True
+                        if cnt_b_minus_g.value >= 0:
+                            print('Game was generated')
+                            G = generate_game(number_of_nodes=cnt_nodes.value, 
+                                                bank_minus_genus=cnt_b_minus_g.value, 
+                                                display_layout=OPTIONS['layout'])
+                            btn_proceed.is_active = True
+                        else:
+                            print('This must be non-negative')
                     elif btn_proceed.hovering(up):
                         GameWindow(G)
-                    elif cnt_nodes.hovering(up, press=True):
-                        print('Value is', cnt_nodes.value)
-                    elif cnt_b_minus_g.hovering(up, press=True):
-                        print('Value is', cnt_b_minus_g.value)
                 elif event.button in {4,5}:
                     cnt_nodes.hovering(up, add=1 if event.button == 4 else -1)
                     cnt_b_minus_g.hovering(up, add=1 if event.button == 4 else -1)
@@ -326,9 +323,9 @@ def GenerateGameWindow():
         mouse = pygame.mouse.get_pos()
         hover.display(mouse, screen, my_font_hover)
         # blue outline
-        pygame.draw.rect(screen, (38, 205, 235), [0, 0, WIDTH, HEIGHT], 4)
+        pygame.draw.rect(screen, THEME['sandbox_outline'], [0, 0, WIDTH, HEIGHT], 4)
         # field
-        pygame.draw.rect(screen, (0, 0, 255), [WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
+        pygame.draw.rect(screen, THEME['field_outline'], [WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
 
 
@@ -339,11 +336,11 @@ def OpenGameWindow():
     btn_shiftdown = Button((745, 550), (45, 40), '  d')
     btn_shiftup = Button((690, 550), (45, 40), '  u')
     update = True
-    hover = HoverTooltip(objects=[btn_back, btn_randomgame], topleft=(350, 570))
+    hover = HoverTooltip(objects=[btn_back, btn_randomgame], topleft=(240, 570))
 
     running_opengame = True
     while running_opengame:
-        screen.fill('black')
+        screen.fill(THEME['background'])
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 down = pygame.mouse.get_pos()
@@ -443,7 +440,7 @@ def GameWindow(g, filename=None):
     g_not_solved = deepcopy(g) # what the fuck is a deepcopy????
 
     while running_game:
-        screen.fill('black')
+        screen.fill(THEME['background'])
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 down = pygame.mouse.get_pos()
@@ -510,10 +507,10 @@ def GameWindow(g, filename=None):
         display_labels(g, sandbox=False, num_moves=len(moves))
         display_nodes_edges(g)
         # orange outline (when not solved)
-        pygame.draw.rect(screen, (254, 151, 0) if not is_victory else GREEN, [
+        pygame.draw.rect(screen, THEME['playing_outline'] if not is_victory else THEME['won_outline'], [
                          0, 0, WIDTH, HEIGHT], 4)
         # play field
-        pygame.draw.rect(screen, (0, 0, 255), [
+        pygame.draw.rect(screen, THEME['field_outline'], [
                          WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
 
@@ -531,7 +528,7 @@ def OptionsWindow():
     btn_back = Button(topleft=(10, 550), size=(100, 40), 
                             text='Back', hover_text='go back to the menu (you clicked the save btn, right?)')
     btn_save = Button(topleft=(10, 500), size=(120, 40), 
-                            text='Save', hover_text='saves the changes')
+                            text='Save', hover_text='save the changes')
     btn_show_ind = Button(topleft=(15, 30), size=(120, 40), 
                             text='Indices', hover_text='when set to True shows nodes\' indices')
     btn_sort_by = Button(topleft=(15, 80), size=(120, 40), 
@@ -545,7 +542,7 @@ def OptionsWindow():
 
     running_options = True
     while running_options:
-        screen.fill('black')
+        screen.fill(THEME['background'])
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 down = pygame.mouse.get_pos()
@@ -598,7 +595,7 @@ def OptionsWindow():
                     (x + btn_show_ind.size[0] + 5, y + 103))
 
         # light yellow outline
-        pygame.draw.rect(screen, (225, 240, 129), [0, 0, WIDTH, HEIGHT], 4)
+        pygame.draw.rect(screen, THEME['options_outline'], [0, 0, WIDTH, HEIGHT], 4)
         pygame.display.update()
 
 
@@ -614,7 +611,7 @@ def MenuWindow():
 
     running_menu = True
     while running_menu:
-        screen.fill('black')
+        screen.fill(THEME['background'])
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 down = pygame.mouse.get_pos()
