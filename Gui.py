@@ -46,8 +46,8 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
         screen.blit(my_font_bigger.render(str(current_value), False,
                     WHITE if current_value >= 0 else RED), (pos[0]+20, pos[1]+12))
         if OPTIONS['show_node_ids']:
-            text_node_indices = my_font.render(str(n), False, (225, 240, 129))
-            screen.blit(text_node_indices, (pos[0]-36, pos[1]-8))
+            text_node_indices = my_font.render(str(n), False, THEME['indices_text'])
+            screen.blit(text_node_indices, (pos[0]-36, pos[1]-14))
     
     # display parameters (genus, bank) and indicator
     shift = 90 if y_shift_genus_bank else 0
@@ -271,7 +271,6 @@ def OpenGameWindow():
         
         if update:
             pygame.display.set_caption('Open game...')
-            print('DF assembled')
             df = assemble_games_dataframe()
             panels = create_panels(df)
             start, finish = 0, 9
@@ -334,8 +333,9 @@ def GameWindow(g, filename=None):
     g_not_solved = deepcopy(g) # what the fuck is a deepcopy????
     
     if OPTIONS['show_best_possible']:
-        moves_best, min_num_moves = find_best(g, N=1000)
+        moves_best, min_num_moves = find_best(g, N=100)
         print(show_instruction(moves_best)) # output optimal strategy to the console
+        # TODO: threading?
 
     while running_game:
         screen.fill(THEME['background'])
@@ -434,9 +434,9 @@ def OptionsWindow():
     btn_save = Button(topleft=(10, 500), size=(120, 40), 
                             text='Save', hover_text='save the changes')
     btn_show_ind = Button(topleft=(15, 30), size=(120, 40), 
-                            text='Indices', hover_text='when set to True shows nodes\' indices')
+                            text='Indices', hover_text='show nodes\' indices')
     btn_show_best_possible = Button(topleft=(15, 80), size=(120, 40), 
-                            text='Best', hover_text='when set to ...')
+                            text='Best', hover_text='show least possible number of moves for the current game')
     btn_sort_by = Button(topleft=(15, 130), size=(120, 40), 
                             text='Sortby', hover_text='choose how to sort games in the game opening window')
     btn_layout = Button(topleft=(15, 180), size=(120, 40), 

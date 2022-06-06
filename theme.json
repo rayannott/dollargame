@@ -10,6 +10,7 @@
 	"open_game_panels": "#3CD761",
 	"hover_text": "#B0B0FA",
 	"counter_text": "#C255C8",
+	"indices_text": "#E1F081",
 	"button_inactive": "#101213",
 	"button_default": "#232323"
 }
