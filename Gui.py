@@ -302,6 +302,7 @@ def OpenGameWindow():
 
 
 def GameWindow(g, filename=None):
+    # TODO: display best possible score (optional)
     pygame.display.set_caption('Game')
     field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
     btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save')
@@ -368,7 +369,7 @@ def GameWindow(g, filename=None):
                         # --------------------
                 else:
                     down_bool, node_down = mouse_on_node(g, down)
-                    up_bool, node_up = mouse_on_node(g, up)
+                    up_bool, _ = mouse_on_node(g, up)
                     if down_bool and not is_victory:
                         if event.button == 4:
                             print(f'Node {node_down} gives')
@@ -404,7 +405,9 @@ def GameWindow(g, filename=None):
 
 def OptionsWindow():
     pygame.display.set_caption('Options')
-
+    # TODO: toggle: indicate best possible score in the OpenWindow
+    # by colouring the number of moves to gold if best_score <= best_possible
+    # (computationally expensive)
     show_indices = OPTIONS['show_node_ids']
     sort_by = OPTIONS['sort_by']
     sort_by_num = SORTBY_LIST.index(sort_by)
