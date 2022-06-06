@@ -2,7 +2,8 @@ import networkx as nx
 import json
 import numpy as np
 from datetime import datetime
-
+from copy import deepcopy
+from random import choice
 
 class DGGraph(nx.Graph):
     def __init__(self, **kwargs):
@@ -79,6 +80,7 @@ class DGGraph(nx.Graph):
         return self.debt == 0
 
 
+
 # utils
 
 def load_game(filename):
@@ -149,3 +151,51 @@ def generate_game(number_of_nodes: int, bank_minus_genus=0, display_layout='plan
     for e in G.edges():
         DG.add_edge(*e)
     return DG
+
+# game solving algorithm
+
+def collapse_moves(moves):
+    collapsed = dict()
+    for node, move in moves:
+        if not node in collapsed.keys():
+            collapsed[node] = 0
+        collapsed[node] += 1 if move == 'take' else -1
+    num_moves = sum([abs(num) for num in collapsed.values()])
+    return collapsed, num_moves
+
+def solve(G):
+    done = False
+    moves = []
+    while not done:
+        n = choice(list(G.nodes))
+        if G.nodes[n]['val'] > 0:
+            G.give(n)
+            moves.append((n, 'give'))
+        elif G.nodes[n]['val'] < 0:
+            G.take(n)
+            moves.append((n, 'take'))
+        if G.is_victory():
+            done = True
+    return collapse_moves(moves)
+
+def find_best(G, N=10):
+    best_so_far = None
+    min_num_of_moves = np.inf
+    for _ in range(N):
+        g = deepcopy(G)
+        moves, number_of_moves = solve(g)
+        if number_of_moves < min_num_of_moves:
+            best_so_far = moves
+            min_num_of_moves = number_of_moves
+    return best_so_far, min_num_of_moves
+
+def show_instruction(moves):
+    arrows = ['->', '<-']
+    tmp = []
+    for node, move in moves.items():
+        if move > 0:
+            tmp.append(f'{node}<-({abs(move)})') 
+        elif move < 0:
+            tmp.append(f'{node}->({abs(move)})') 
+    s = ', '.join(tmp)
+    return s

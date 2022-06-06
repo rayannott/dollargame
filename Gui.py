@@ -1,6 +1,7 @@
 import json
+from numpy import min_scalar_type
 import pygame
-from Graph import DGGraph, load_game, generate_game
+from Graph import DGGraph, load_game, generate_game, find_best, show_instruction
 from utils import *
 from itertools import count
 from math import sqrt
@@ -58,8 +59,9 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
         valid = is_game_valid(G)
         screen.blit(my_font.render(
             'valid' if valid else 'invalid', False, GREEN if valid else RED), (20, 80))
-    elif not y_shift_genus_bank:
-        screen.blit(my_font.render(f'MOVES = {num_moves}', False, WHITE), (20, 80 + shift))
+    else:
+        if not y_shift_genus_bank:
+            screen.blit(my_font.render(f'MOVES = {num_moves}', False, WHITE), (20, 80 + shift))
 
 
 def display_nodes_edges(G):
@@ -323,12 +325,17 @@ def GameWindow(g, filename=None):
         else:
             best = None
     print(f'Game #{val} is started')
+    # TODO: output best existing solution's instruction
 
     running_game = True
     is_victory = False
     only_once = True
     moves = []
     g_not_solved = deepcopy(g) # what the fuck is a deepcopy????
+    
+    if OPTIONS['show_best_possible']:
+        moves_best, min_num_moves = find_best(g, N=1000)
+        print(show_instruction(moves_best)) # output optimal strategy to the console
 
     while running_game:
         screen.fill(THEME['background'])
@@ -394,6 +401,11 @@ def GameWindow(g, filename=None):
         display_prev_stats(val, best)
         display_labels(g, sandbox=False, num_moves=len(moves))
         display_nodes_edges(g)
+
+        if OPTIONS['show_best_possible']:
+            screen.blit(my_font.render(f'best possible', False, YELLOW), (20, 157))
+            screen.blit(my_font.render(f'score: {min_num_moves}', False, YELLOW), (20, 175))
+        
         # orange outline (when not solved)
         pygame.draw.rect(screen, THEME['playing_outline'] if not is_victory else THEME['won_outline'], [
                          0, 0, WIDTH, HEIGHT], 4)
@@ -409,11 +421,13 @@ def OptionsWindow():
     # by colouring the number of moves to gold if best_score <= best_possible
     # (computationally expensive)
     show_indices = OPTIONS['show_node_ids']
+    show_best_possible = OPTIONS['show_best_possible']
     sort_by = OPTIONS['sort_by']
     sort_by_num = SORTBY_LIST.index(sort_by)
     layout = OPTIONS['layout']
     layout_num = LAYOUT_LIST.index(layout)
     dummy = OPTIONS['dummy']
+
 
     btn_back = Button(topleft=(10, 550), size=(100, 40), 
                             text='Back', hover_text='go back to the menu (you clicked the save btn, right?)')
@@ -421,14 +435,17 @@ def OptionsWindow():
                             text='Save', hover_text='save the changes')
     btn_show_ind = Button(topleft=(15, 30), size=(120, 40), 
                             text='Indices', hover_text='when set to True shows nodes\' indices')
-    btn_sort_by = Button(topleft=(15, 80), size=(120, 40), 
+    btn_show_best_possible = Button(topleft=(15, 80), size=(120, 40), 
+                            text='Best', hover_text='when set to ...')
+    btn_sort_by = Button(topleft=(15, 130), size=(120, 40), 
                             text='Sortby', hover_text='choose how to sort games in the game opening window')
-    btn_layout = Button(topleft=(15, 130), size=(120, 40), 
+    btn_layout = Button(topleft=(15, 180), size=(120, 40), 
                             text='Layout', hover_text='choose a layout for a generated game')
-    cnt_dummy = Counter(topleft=(15, 180), size=(120, 40), 
+    cnt_dummy = Counter(topleft=(15, 230), size=(120, 40), 
                             text='dummy', value=dummy, hover_text='a dummy counter')
     
-    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, btn_sort_by, btn_layout, cnt_dummy])
+    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, 
+                                    btn_sort_by, btn_layout, btn_show_best_possible, cnt_dummy])
 
     running_options = True
     while running_options:
@@ -447,10 +464,13 @@ def OptionsWindow():
                         OPTIONS['dummy'] = dummy
                         OPTIONS['sort_by'] = sort_by
                         OPTIONS['layout'] = layout
+                        OPTIONS['show_best_possible'] = show_best_possible
                         with open('options.json', 'w') as f:
                             json.dump(OPTIONS, f)
                     elif btn_show_ind.hovering(up):
                         show_indices = not show_indices
+                    elif btn_show_best_possible.hovering(up):
+                        show_best_possible = not show_best_possible
                     elif btn_sort_by.hovering(up):
                         sort_by_num += 1
                         sort_by = SORTBY_LIST[sort_by_num % len(SORTBY_LIST)]
@@ -467,6 +487,7 @@ def OptionsWindow():
         btn_back.draw(screen, my_font)
         btn_save.draw(screen, my_font)
         btn_show_ind.draw(screen, my_font)
+        btn_show_best_possible.draw(screen, my_font)
         btn_sort_by.draw(screen, my_font)
         btn_layout.draw(screen, my_font)
         cnt_dummy.draw(screen, my_font)
@@ -479,10 +500,12 @@ def OptionsWindow():
         x, y = btn_show_ind.topleft
         screen.blit(my_font.render(str(show_indices), False, GREEN if show_indices else RED), 
                     (x + btn_show_ind.size[0] + 5, y + 13))
+        screen.blit(my_font.render(str(show_best_possible), False, GREEN if show_best_possible else RED), 
+                    (x + btn_show_ind.size[0] + 5, y + 60))
         screen.blit(my_font.render(sort_by, False, WHITE), 
-                    (x + btn_show_ind.size[0] + 5, y + 58))
+                    (x + btn_show_ind.size[0] + 5, y + 108))
         screen.blit(my_font.render(layout, False, WHITE), 
-                    (x + btn_show_ind.size[0] + 5, y + 103))
+                    (x + btn_show_ind.size[0] + 5, y + 155))
 
         # light yellow outline
         pygame.draw.rect(screen, THEME['options_outline'], [0, 0, WIDTH, HEIGHT], 4)

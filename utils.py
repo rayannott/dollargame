@@ -7,7 +7,7 @@ import pygame
 from math import sqrt
 
 PANEL_HEIGHT = 50
-WHITE, GREEN, RED = (255, 255, 255), (0, 255, 0), (255, 0, 0)
+WHITE, GREEN, RED, YELLOW = (255, 255, 255), (0, 255, 0), (255, 0, 0), (233, 218, 52)
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
          for ind in range(9)]
 WIDTH, HEIGHT = 800, 600
