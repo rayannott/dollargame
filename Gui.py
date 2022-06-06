@@ -4,17 +4,8 @@ from Graph import DGGraph, load_game, generate_game
 from utils import *
 from itertools import count
 from math import sqrt
-from ui_elements import Button, HoverTooltip, Panel, Counter, PANEL_HEIGHT
-from datetime import datetime
-from random import choice
+from ui_elements import Button, HoverTooltip, Panel, Counter
 from copy import deepcopy
-
-WHITE, GREEN, RED = (255, 255, 255), (0, 255, 0), (255, 0, 0)
-RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
-         for ind in range(9)]
-WIDTH, HEIGHT = 800, 600
-SORTBY_LIST = ['date_created', 'num_of_plays', 'best_score']
-LAYOUT_LIST = ['planar', 'shell']
 
 pygame_icon = pygame.image.load('icon.png')
 pygame.display.set_icon(pygame_icon)
@@ -25,42 +16,7 @@ my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
 my_font_hover = pygame.font.SysFont('UASQUARE.ttf', 26)
 
 
-
-def get_random_game():
-    games0 = get_list_of_game_files()
-    filename = choice(games0)
-    return load_game(filename), filename
-
-
-def assemble_games_dataframe():
-    df = []
-    filenames = get_list_of_game_files()
-    for file in filenames:
-        with open('games/' + file, 'r') as f:
-            dat = json.load(f)
-        data = {}
-        graph = dat['graph']
-        values = graph['values'].values()
-        genus = len(graph['edges']) - len(values) + 1
-        plays = dat['plays']
-        if len(plays):
-            best_score = min([len(play['moves']) for play in plays])
-        else:
-            best_score = 'not solved'
-        data['game_number'] = int(file[:-5])
-        data['graph'] = (len(graph['values']), len(graph['edges']))
-        data['num_of_plays'] = len(plays)
-        data['best_score'] = best_score
-        data['date_created'] = dat['info']['date_created']
-        df.append(data) 
-    if OPTIONS['sort_by'] == 'date_created':
-        df.sort(key=lambda x : datetime.strptime(x['date_created'], '%d/%m/%Y %H:%M:%S'), reverse=True)
-    elif OPTIONS['sort_by'] == 'num_of_plays':
-        df.sort(key=lambda x : x['num_of_plays']) # sort by the number of plays
-    elif OPTIONS['sort_by'] == 'best_score':
-        df.sort(key=lambda x : x['best_score'] if type(x['best_score'])==int else -1, reverse=True)
-    return df
-
+# -----------display functions----------------
 
 def create_panels(df):
     panels = []
@@ -73,73 +29,6 @@ def display_panels(panels):
     for ind, panel in enumerate(panels):
         panel.draw(topleft=(15, PANEL_HEIGHT + ind*54),
                    screen=screen, font=my_font)
-
-
-def what_rect_hover(pos):
-    for i, rect in enumerate(RECTS):
-        if rect.collidepoint(pos):
-            return i
-
-
-def shift_panels(start, finish, shift, number_of_panels):
-    # shift is either 1 (down) or -1 (up)
-    if shift == 1 and start > 0:
-        start -= 1
-        finish -= 1
-    elif shift == -1 and finish < number_of_panels:
-        start += 1
-        finish += 1
-    return start, finish
-
-
-def dist(p1, p2):
-    return sqrt((p1[1]-p2[1])**2 + (p1[0]-p2[0])**2)
-
-
-def is_game_valid(G):
-    mask = [G.nodes[n]['val'] < 0 for n in G.nodes]
-    at_least_one_negative = sum(mask)
-    winnable = G.bank >= G.genus
-    enough_nodes = len(G.nodes) > 2
-    enough_edges = len(G.edges) > 1
-    connected = G.is_connected()
-    return winnable and enough_nodes and enough_edges and at_least_one_negative and connected
-
-
-def mouse_on_node(G, pos):
-    for node, attr in G.nodes.items():
-        if dist(pos, attr['pos']) < 20:
-            return (True, node)
-    return (False, None)
-
-
-def create_node(G, node_num, pos):
-    G.add_node(node=node_num, val=0, pos=pos)
-
-    print(f'Node {node_num} created: {G.nodes[node_num]}')
-
-
-def remove_node(G, node_num):
-    G.remove_node(node_num)
-    print(f'Node {node_num} removed')
-
-
-def create_edge(G, s, f):
-    G.add_edge(s, f)
-    print(f'Created edge {s}->{f}')
-
-
-def remove_edge(G, s, f):
-    G.remove_edge(s, f)
-    print(f'Removed edge {s}->{f}')
-
-
-def increase_value(G, node):
-    G.change_value(node, increase=True)
-
-
-def decrease_value(G, node):
-    G.change_value(node, increase=False)
 
 
 def display_prev_stats(game_number, best=None):
@@ -183,8 +72,6 @@ def display_nodes_edges(G):
         pygame.draw.line(screen, (255, 255, 255),
                          G.nodes[s]['pos'],
                          G.nodes[f]['pos'], 2)
-
-
 
 
 # ----------------WINDOWS --------------------
@@ -269,7 +156,7 @@ def GenerateGameWindow():
     btn_proceed = Button(topleft=(10, 450), size=(120, 40), is_active=False, 
                             text='Proceed', hover_text='pick this game')
     cnt_nodes = Counter(topleft=(10, 30), size=(100, 40), value=6, bounds=(3, 100),
-                            text='Nodes', hover_text='enter a number of nodes')
+                            text='Nodes', hover_text='enter the number of nodes')
     cnt_b_minus_g = Counter(topleft=(10, 80), size=(100, 40), value=2, bounds=(0, 100),
                             text='B-G', hover_text='bank - genus; 0 is the most difficult (no extra dollars)')
     
@@ -354,8 +241,9 @@ def OpenGameWindow():
                     elif btn_randomgame.hovering(up):
                         print('Starting a random game')
                         g, filename = get_random_game()
-                        GameWindow(g, filename)
-                        update = True
+                        if g is not None:
+                            GameWindow(g, filename)
+                            update = True
                     if scroll_down_pressed or scroll_up_pressed:
                         start, finish = shift_panels(
                             start, finish, shift=(-1 if scroll_down_pressed else 1), number_of_panels=len(panels))
@@ -414,12 +302,18 @@ def OpenGameWindow():
 
 
 def GameWindow(g, filename=None):
+    pygame.display.set_caption('Game')
+    field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
+    btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save')
+    btn_back = Button(topleft=(30, 510), size=(100, 40), text='Back')
+
     if filename is None:
         # in case the filename is so far unknown
         val = None
         best = None
     else:
         # in case an existing game is opened
+        btn_save.is_active = False
         val = int(filename[:-5])
         with open(f'games/{val}.json',) as f:
             dat = json.load(f)
@@ -429,10 +323,6 @@ def GameWindow(g, filename=None):
             best = None
     print(f'Game #{val} is started')
 
-    pygame.display.set_caption('Game')
-    field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
-    btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save')
-    btn_back = Button(topleft=(30, 510), size=(100, 40), text='Back')
     running_game = True
     is_victory = False
     only_once = True
@@ -599,10 +489,10 @@ def OptionsWindow():
 def MenuWindow():
     pygame.display.set_caption('Menu')
     D, d, h = 50, 30, 76
-    btn_create = Button((200, D +(h+d)*0), (400, h), 'CREATE', hover_text='click to open a sandbox')
+    btn_create = Button((200, D +(h+d)*0), (400, h), 'CREATE', hover_text='open a sandbox')
     btn_generate = Button((200, D +(h+d)*1), (400, h), 'GENERATE', hover_text='generate a game')
     btn_open = Button((200, D +(h+d)*2), (400, h), 'OPEN', hover_text='open an existing game')
-    btn_options = Button((200, D +(h+d)*3), (400, h), 'OPTIONS', hover_text='lol indeed')
+    btn_options = Button((200, D +(h+d)*3), (400, h), 'OPTIONS', hover_text='configure soem shit')
     btn_exit = Button((200, D +(h+d)*4), (400, h), 'EXIT', hover_text='you can click the red X btn though')
     hover = HoverTooltip(objects=[btn_generate, btn_options, btn_exit, btn_create, btn_open])
 
@@ -614,22 +504,23 @@ def MenuWindow():
                 down = pygame.mouse.get_pos()
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
-                if btn_generate.hovering(up):
-                    GenerateGameWindow()
-                    pygame.display.set_caption('Menu')
-                elif btn_options.hovering(up):
-                    print('Options')
-                    OptionsWindow()
-                    pygame.display.set_caption('Menu')
-                elif btn_exit.hovering(up):
-                    running_menu = False
-                    # pygame.quit()
-                elif btn_create.hovering(up):
-                    SandboxWindow()
-                    pygame.display.set_caption('Menu')
-                elif btn_open.hovering(up):
-                    OpenGameWindow()
-                    pygame.display.set_caption('Menu')
+                if event.button == 1:
+                    if btn_generate.hovering(up):
+                        GenerateGameWindow()
+                        pygame.display.set_caption('Menu')
+                    elif btn_options.hovering(up):
+                        print('Options')
+                        OptionsWindow()
+                        pygame.display.set_caption('Menu')
+                    elif btn_exit.hovering(up):
+                        running_menu = False
+                        # pygame.quit()
+                    elif btn_create.hovering(up):
+                        SandboxWindow()
+                        pygame.display.set_caption('Menu')
+                    elif btn_open.hovering(up):
+                        OpenGameWindow()
+                        pygame.display.set_caption('Menu')
             elif event.type == pygame.QUIT:
                 running_menu = False
                 

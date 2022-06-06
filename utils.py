@@ -11,7 +11,7 @@ WHITE, GREEN, RED = (255, 255, 255), (0, 255, 0), (255, 0, 0)
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
          for ind in range(9)]
 WIDTH, HEIGHT = 800, 600
-SORTBY_LIST = ['date_created', 'num_of_plays', 'best_score']
+SORTBY_LIST = ['date_created', 'num_of_plays', 'best_score', 'game_number']
 LAYOUT_LIST = ['planar', 'shell']
 
 with open('options.json', 'r') as f:
@@ -71,6 +71,8 @@ def assemble_games_dataframe():
         df.sort(key=lambda x : x['num_of_plays']) # sort by the number of plays
     elif OPTIONS['sort_by'] == 'best_score':
         df.sort(key=lambda x : x['best_score'] if type(x['best_score'])==int else -1, reverse=True)
+    elif OPTIONS['sort_by'] == 'game_number':
+        df.sort(key=lambda x : x['game_number'])
     return df
 
 

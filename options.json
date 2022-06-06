@@ -1,1 +1,1 @@
-{"show_node_ids": false, "dummy": 10, "sort_by": "date_created", "layout": "shell"}
+{"show_node_ids": true, "dummy": 10, "sort_by": "best_score", "layout": "planar"}

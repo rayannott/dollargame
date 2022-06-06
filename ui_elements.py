@@ -41,6 +41,7 @@ class Counter(Button):
         if res:
             if add < 0 and self.value > self.bounds[0] or add > 0 and self.value < self.bounds[1]:
                 self.value += add
+        return res
     
     def draw(self, screen, font):
         x, y = self.topleft
