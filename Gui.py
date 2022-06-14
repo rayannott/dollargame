@@ -7,11 +7,13 @@ from itertools import count
 from math import sqrt
 from ui_elements import Button, HoverTooltip, Panel, Counter
 from copy import deepcopy
+import os
 
 pygame_icon = pygame.image.load('icon.png')
 pygame.display.set_icon(pygame_icon)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.font.init()
+default_font = pygame.font.SysFont('cambria', 20)
 my_font = pygame.font.SysFont('UASQUARE.ttf', 30)
 my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
 my_font_hover = pygame.font.SysFont('UASQUARE.ttf', 26)
@@ -306,6 +308,8 @@ def GameWindow(g, filename=None):
     # TODO: display best possible score (optional)
     pygame.display.set_caption('Game')
     field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
+    
+    btn_best = Button(topleft=(30, 390), size=(100, 40), text='Best', is_active=OPTIONS['show_best_possible'])
     btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save')
     btn_back = Button(topleft=(30, 510), size=(100, 40), text='Back')
 
@@ -329,12 +333,14 @@ def GameWindow(g, filename=None):
     running_game = True
     is_victory = False
     only_once = True
+    show_best_moves = False
+
     moves = []
     g_not_solved = deepcopy(g) # what the fuck is a deepcopy????
     
     if OPTIONS['show_best_possible']:
         moves_best, min_num_moves = find_best(g, N=100)
-        print(show_instruction(moves_best)) # output optimal strategy to the console
+        print(', '.join(show_instruction(moves_best))) # output optimal strategy to the console
         # TODO: threading?
 
     while running_game:
@@ -358,6 +364,8 @@ def GameWindow(g, filename=None):
                         elif btn_back.hovering(up):
                             running_game = False
                             break
+                        elif btn_best.hovering(up):
+                            show_best_moves = not show_best_moves
                     elif not is_victory:
                         # this code makes old controls possible
                         down_bool, node_down = mouse_on_node(g, down)
@@ -396,6 +404,7 @@ def GameWindow(g, filename=None):
             btn_save.is_active = True
             only_once = False
         
+        
         btn_save.draw(screen, my_font)
         btn_back.draw(screen, my_font)
         display_prev_stats(val, best)
@@ -403,8 +412,14 @@ def GameWindow(g, filename=None):
         display_nodes_edges(g)
 
         if OPTIONS['show_best_possible']:
+            btn_best.draw(screen, my_font)
             screen.blit(my_font.render(f'best possible', False, YELLOW), (20, 157))
             screen.blit(my_font.render(f'score: {min_num_moves}', False, YELLOW), (20, 175))
+            
+            if show_best_moves:
+                for i, hint in enumerate(show_instruction(moves_best)):
+                    screen.blit(default_font.render(f'{hint}', False, YELLOW), 
+                                            (15 + i//10 * 72, 193 + (i-i//10*10)*18))
         
         # orange outline (when not solved)
         pygame.draw.rect(screen, THEME['playing_outline'] if not is_victory else THEME['won_outline'], [
@@ -417,20 +432,17 @@ def GameWindow(g, filename=None):
 
 def OptionsWindow():
     pygame.display.set_caption('Options')
-    # TODO: toggle: indicate best possible score in the OpenWindow
-    # by colouring the number of moves to gold if best_score <= best_possible
-    # (computationally expensive)
     show_indices = OPTIONS['show_node_ids']
     show_best_possible = OPTIONS['show_best_possible']
     sort_by = OPTIONS['sort_by']
     sort_by_num = SORTBY_LIST.index(sort_by)
     layout = OPTIONS['layout']
     layout_num = LAYOUT_LIST.index(layout)
-    dummy = OPTIONS['dummy']
+    game_number = 0
 
 
     btn_back = Button(topleft=(10, 550), size=(100, 40), 
-                            text='Back', hover_text='go back to the menu (you clicked the save btn, right?)')
+                            text='Back', hover_text='go back to the menu (you did click the save btn, right?)')
     btn_save = Button(topleft=(10, 500), size=(120, 40), 
                             text='Save', hover_text='save the changes')
     btn_show_ind = Button(topleft=(15, 30), size=(120, 40), 
@@ -441,11 +453,13 @@ def OptionsWindow():
                             text='Sortby', hover_text='choose how to sort games in the game opening window')
     btn_layout = Button(topleft=(15, 180), size=(120, 40), 
                             text='Layout', hover_text='choose a layout for a generated game')
-    cnt_dummy = Counter(topleft=(15, 230), size=(120, 40), 
-                            text='dummy', value=dummy, hover_text='a dummy counter')
+    cnt_game_number = Counter(topleft=(15, 230), size=(120, 40), bounds=(0, 1000),
+                            text='Game #', value=game_number, hover_text='choose a game by its number')
+    btn_delete_game = Button(topleft=(200, 230), size=(120, 40), 
+                            text='Delete', hover_text=f'delete game #{game_number}', bg_color=(255, 0, 0))
     
     hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, 
-                                    btn_sort_by, btn_layout, btn_show_best_possible, cnt_dummy])
+                                    btn_sort_by, btn_layout, btn_show_best_possible, cnt_game_number, btn_delete_game])
 
     running_options = True
     while running_options:
@@ -461,7 +475,6 @@ def OptionsWindow():
                     elif btn_save.hovering(up):
                         print('Settings saved')
                         OPTIONS['show_node_ids'] = show_indices
-                        OPTIONS['dummy'] = dummy
                         OPTIONS['sort_by'] = sort_by
                         OPTIONS['layout'] = layout
                         OPTIONS['show_best_possible'] = show_best_possible
@@ -477,9 +490,17 @@ def OptionsWindow():
                     elif btn_layout.hovering(up):
                         layout_num += 1
                         layout = LAYOUT_LIST[layout_num % len(LAYOUT_LIST)]
+                    elif btn_delete_game.hovering(up):
+                        myfile = f'games/{game_number}.json'
+                        if os.path.isfile(myfile):
+                            os.remove(myfile)
+                            print(f'Game #{game_number} has been deleted')
+                        else:
+                            print(f'Error: {myfile} file not found')
                 elif event.button in {4,5}:
-                    cnt_dummy.hovering(up, add=1 if event.button == 4 else -1)
-                    dummy = cnt_dummy.value
+                    cnt_game_number.hovering(up, add=1 if event.button == 4 else -1)
+                    game_number = cnt_game_number.value
+                    btn_delete_game.hover_text = f'delete game #{game_number}'
             elif event.type == pygame.QUIT:
                 running_options = False
         
@@ -490,7 +511,8 @@ def OptionsWindow():
         btn_show_best_possible.draw(screen, my_font)
         btn_sort_by.draw(screen, my_font)
         btn_layout.draw(screen, my_font)
-        cnt_dummy.draw(screen, my_font)
+        btn_delete_game.draw(screen, my_font)
+        cnt_game_number.draw(screen, my_font)
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()

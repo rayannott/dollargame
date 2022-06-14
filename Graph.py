@@ -197,5 +197,4 @@ def show_instruction(moves):
             tmp.append(f'{node}<-({abs(move)})') 
         elif move < 0:
             tmp.append(f'{node}->({abs(move)})') 
-    s = ', '.join(tmp)
-    return s
+    return tmp
