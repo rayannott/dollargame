@@ -154,7 +154,7 @@ def GenerateGameWindow():
     btn_back = Button(topleft=(10, 550), size=(100, 40), 
                             text='Back', hover_text='go back')
     btn_generate = Button(topleft=(10, 500), size=(120, 40), 
-                            text='Generate', hover_text='generate a new graph')
+                            text='Generate', hover_text='generate a new game')
     btn_proceed = Button(topleft=(10, 450), size=(120, 40), is_active=False, 
                             text='Proceed', hover_text='pick this game')
     cnt_nodes = Counter(topleft=(10, 30), size=(100, 40), value=6, bounds=(3, 100),
