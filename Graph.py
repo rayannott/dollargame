@@ -164,9 +164,8 @@ def collapse_moves(moves):
     return collapsed, num_moves
 
 def solve(G):
-    done = False
     moves = []
-    while not done:
+    while True:
         n = choice(list(G.nodes))
         if G.nodes[n]['val'] > 0:
             G.give(n)
@@ -175,8 +174,8 @@ def solve(G):
             G.take(n)
             moves.append((n, 'take'))
         if G.is_victory():
-            done = True
-    return collapse_moves(moves)
+            return collapse_moves(moves)
+    
 
 def find_best(G, N=10):
     best_so_far = None
