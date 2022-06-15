@@ -177,3 +177,10 @@ def increase_value(G, node):
 
 def decrease_value(G, node):
     G.change_value(node, increase=False)
+
+def far_enough_from_nodes(G, release_pos):
+    # to avoid overcrowding :)
+    for node in G.nodes:
+        if dist(release_pos, G.nodes[node]['pos']) < 80:
+            return False
+    return True

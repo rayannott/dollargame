@@ -1,5 +1,4 @@
 import json
-from numpy import min_scalar_type
 import pygame
 from Graph import DGGraph, load_game, generate_game, find_best, show_instruction
 from utils import *
@@ -37,7 +36,8 @@ def display_panels(panels):
 def display_prev_stats(game_number, best=None):
     if not best is None:
         screen.blit(my_font.render(f'Best = {best}', False, GREEN), (20, 130))
-    screen.blit(my_font.render(f'Game #{game_number}', False, GREEN), (20, 110))
+    dots = '...'
+    screen.blit(my_font.render(f'Game #{game_number if game_number is not None else dots}', False, GREEN), (20, 110))
 
 
 def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
@@ -83,6 +83,8 @@ def display_nodes_edges(G):
 def SandboxWindow():
     pygame.display.set_caption('Game creation')
     running = True
+    holding_down = False
+    down_bool = False
     field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
 
     G = DGGraph()
@@ -99,8 +101,10 @@ def SandboxWindow():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 down = pygame.mouse.get_pos()
-                # print(down)
+                holding_down = True
+                down_bool, node_down = mouse_on_node(G, down)
             elif event.type == pygame.MOUSEBUTTONUP:
+                holding_down = False
                 up = pygame.mouse.get_pos()
                 if not field_rect.collidepoint(up):
                     if btn_proceed.hovering(up):
@@ -121,23 +125,36 @@ def SandboxWindow():
                     elif down_bool:
                         if up_bool:
                             if node_down == node_up:
-                                remove_node(G, node_down)
+                                remove_node(G, node_up)
                             else:
                                 if (node_down, node_up) in G.edges:
                                     remove_edge(G, node_down, node_up)
                                 else:
-                                    create_edge(G, node_down, node_up)
+                                    create_edge(G, node_down, node_up) 
                     else:
-                        if dist(down, up) < 20:
+                        if dist(down, up) < 20 and far_enough_from_nodes(G, down):
                             create_node(G, next(cnt), down)
-
             elif event.type == pygame.QUIT:
                 running = False
+        
+        display_labels(G, sandbox=True)
+        display_nodes_edges(G)
+
+        # aesthetics (when drawing edges)
+        if holding_down:
+            pos = pygame.mouse.get_pos()
+            if down_bool:
+                hovering_node_bool, hovering_node_number = mouse_on_node(G, pos)
+                if hovering_node_bool:
+                    color = RED if (node_down, hovering_node_number) in G.edges else (120, 205, 0)
+                    pygame.draw.line(screen, color, 
+                                    G.nodes[node_down]['pos'], G.nodes[hovering_node_number]['pos'], 2)
+                else:
+                    pygame.draw.line(screen, (150, 150, 150), G.nodes[node_down]['pos'], pos, 2)
+        
         btn_proceed.is_active = is_game_valid(G)
         btn_proceed.draw(screen, my_font)
         btn_discard.draw(screen, my_font)
-        display_labels(G, sandbox=True)
-        display_nodes_edges(G)
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
@@ -312,6 +329,7 @@ def GameWindow(g, filename=None):
     btn_best = Button(topleft=(30, 390), size=(100, 40), text='Best', is_active=OPTIONS['show_best_possible'])
     btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save')
     btn_back = Button(topleft=(30, 510), size=(100, 40), text='Back')
+    hover = HoverTooltip(objects=[btn_best, btn_save, btn_back])
 
     if filename is None:
         # in case the filename is so far unknown
@@ -327,14 +345,12 @@ def GameWindow(g, filename=None):
             best = min([len(play['moves']) for play in dat['plays']])
         else:
             best = None
-    print(f'Game #{val} is started')
-    # TODO: output best existing solution's instruction
 
+    print(f'Game #{val} is started')
     running_game = True
     is_victory = False
     only_once = True
     show_best_moves = False
-
     moves = []
     g_not_solved = deepcopy(g) # what the fuck is a deepcopy????
     

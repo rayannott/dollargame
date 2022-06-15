@@ -190,11 +190,10 @@ def find_best(G, N=10):
     return best_so_far, min_num_of_moves
 
 def show_instruction(moves):
-    arrows = ['->', '<-']
     tmp = []
     for node, move in moves.items():
         if move > 0:
-            tmp.append(f'{node}<-({abs(move)})') 
+            tmp.append(f'{node}←({abs(move)})') 
         elif move < 0:
-            tmp.append(f'{node}->({abs(move)})') 
+            tmp.append(f'{node}→({abs(move)})') 
     return tmp
