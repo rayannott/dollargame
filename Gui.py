@@ -84,59 +84,96 @@ def SandboxWindow():
     pygame.display.set_caption('Game creation')
     running = True
     holding_down = False
+    holding_with_shift = False
     down_bool = False
     field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
 
     G = DGGraph()
     cnt = count(0)
-    btn_proceed = Button(topleft=(30, 450), size=(100, 40), 
+    btn_generate = Button(topleft=(15, 230), size=(135, 40), 
+                            text='Generate', hover_text='generate a new game')
+    cnt_nodes = Counter(topleft=(15, 280), size=(110, 40), value=6, bounds=(3, 100),
+                            text='Nodes', hover_text='enter the number of nodes')
+    cnt_b_minus_g = Counter(topleft=(15, 330), size=(110, 40), value=2, bounds=(0, 100),
+                            text='B-G', hover_text='bank - genus; 0 is the most difficult (no extra dollars)')
+    btn_clear = Button(topleft=(30, 410), size=(100, 40), 
+                        text='Clear', hover_text='clears the field')
+    btn_proceed = Button(topleft=(30, 460), size=(100, 40), 
                         text='Proceed', is_active=False, hover_text='play!')
     btn_discard = Button(topleft=(30, 510), size=(100, 40), text='Discard',
                         hover_text='go back (loses progress)')
-    hover = HoverTooltip(objects=[btn_proceed, btn_discard])
+    hover = HoverTooltip(objects=[btn_proceed, btn_discard, btn_generate, cnt_b_minus_g, cnt_nodes, btn_clear])
     
     # Game creation loop
     while running:
         screen.fill(THEME['background'])
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                down = pygame.mouse.get_pos()
-                holding_down = True
-                down_bool, node_down = mouse_on_node(G, down)
-            elif event.type == pygame.MOUSEBUTTONUP:
-                holding_down = False
-                up = pygame.mouse.get_pos()
-                if not field_rect.collidepoint(up):
-                    if btn_proceed.hovering(up):
-                        GameWindow(G)
-                        # pygame.display.set_caption('Game creation')
-                        running = False
-                    if btn_discard.hovering(up):
-                        running = False
-                else:
+            if not pygame.key.get_mods() & pygame.KMOD_SHIFT:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    down = pygame.mouse.get_pos()
+                    holding_down = True
                     down_bool, node_down = mouse_on_node(G, down)
-                    up_bool, node_up = mouse_on_node(G, up)
-                    if event.button == 4:  # mousewheel up
-                        if down_bool:
-                            increase_value(G, node_down)
-                    elif event.button == 5:  # mousewheel down
-                        if down_bool:
-                            decrease_value(G, node_down)
-                    elif down_bool:
-                        if up_bool:
-                            if node_down == node_up:
-                                remove_node(G, node_up)
-                            else:
-                                if (node_down, node_up) in G.edges:
-                                    remove_edge(G, node_down, node_up)
-                                else:
-                                    create_edge(G, node_down, node_up) 
+                elif event.type == pygame.MOUSEBUTTONUP:
+
+                    holding_down = False
+                    up = pygame.mouse.get_pos()
+                    if not field_rect.collidepoint(up):
+                        if event.button == 1:
+                            if btn_proceed.hovering(up):
+                                GameWindow(G)
+                                # pygame.display.set_caption('Game creation')
+                                running = False
+                            elif btn_generate.hovering(up):
+                                print('Game was generated')
+                                G = generate_game(number_of_nodes=cnt_nodes.value, 
+                                                    bank_minus_genus=cnt_b_minus_g.value, 
+                                                    display_layout=OPTIONS['layout'])
+                                btn_proceed.is_active = True
+                            elif btn_discard.hovering(up):
+                                running = False
+                            elif btn_clear.hovering(up):
+                                G = DGGraph()
+                                cnt = count(0)
+                        elif event.button in {4,5}:
+                            cnt_nodes.hovering(up, add=1 if event.button == 4 else -1)
+                            cnt_b_minus_g.hovering(up, add=1 if event.button == 4 else -1)
                     else:
-                        if dist(down, up) < 20 and far_enough_from_nodes(G, down):
-                            create_node(G, next(cnt), down)
-            elif event.type == pygame.QUIT:
-                running = False
+                        down_bool, node_down = mouse_on_node(G, down)
+                        up_bool, node_up = mouse_on_node(G, up)
+                        if event.button == 4:  # mousewheel up
+                            if down_bool:
+                                increase_value(G, node_down)
+                        elif event.button == 5:  # mousewheel down
+                            if down_bool:
+                                decrease_value(G, node_down)
+                        elif down_bool:
+                            if up_bool:
+                                if node_down == node_up:
+                                    remove_node(G, node_up)
+                                else:
+                                    if (node_down, node_up) in G.edges:
+                                        remove_edge(G, node_down, node_up)
+                                    else:
+                                        create_edge(G, node_down, node_up) 
+                        else:
+                            if dist(down, up) < 20 and far_enough_from_nodes(G, down):
+                                create_node(G, next(cnt), down)
+                elif event.type == pygame.QUIT:
+                    running = False
+            else:
+                # moving the nodes
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    print('clicked with shift')
+                    down_shift = pygame.mouse.get_pos()
+                    holding_with_shift = True
+                    down_bool_shift, node_down_shift = mouse_on_node(G, down_shift)
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    holding_with_shift = False
         
+        # moving the nodes
+        if holding_with_shift and down_bool_shift:
+            G.nodes[node_down_shift]['pos'] = pygame.mouse.get_pos()
+
         display_labels(G, sandbox=True)
         display_nodes_edges(G)
 
@@ -155,6 +192,10 @@ def SandboxWindow():
         btn_proceed.is_active = is_game_valid(G)
         btn_proceed.draw(screen, my_font)
         btn_discard.draw(screen, my_font)
+        btn_generate.draw(screen, my_font)
+        btn_clear.draw(screen, my_font)
+        cnt_nodes.draw(screen, my_font)
+        cnt_b_minus_g.draw(screen, my_font)
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
@@ -167,74 +208,6 @@ def SandboxWindow():
                         WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
 
-
-def GenerateGameWindow():
-    pygame.display.set_caption('Generate game...')
-    btn_back = Button(topleft=(10, 550), size=(100, 40), 
-                            text='Back', hover_text='go back')
-    btn_generate = Button(topleft=(10, 500), size=(120, 40), 
-                            text='Generate', hover_text='generate a new game')
-    btn_proceed = Button(topleft=(10, 450), size=(120, 40), is_active=False, 
-                            text='Proceed', hover_text='pick this game')
-    cnt_nodes = Counter(topleft=(10, 30), size=(100, 40), value=6, bounds=(3, 100),
-                            text='Nodes', hover_text='enter the number of nodes')
-    cnt_b_minus_g = Counter(topleft=(10, 80), size=(100, 40), value=2, bounds=(0, 100),
-                            text='B-G', hover_text='bank - genus; 0 is the most difficult (no extra dollars)')
-    
-    hover = HoverTooltip(objects=[btn_back, btn_generate, btn_proceed, cnt_nodes, cnt_b_minus_g], 
-                        topleft=(165, 570))
-    
-    # current generated game to display
-    G = None
-
-    running_generation = True
-    while running_generation:
-        screen.fill(THEME['background'])
-        for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                down = pygame.mouse.get_pos()
-            elif event.type == pygame.MOUSEBUTTONUP:
-                up = pygame.mouse.get_pos()
-                if event.button == 1:
-                    if btn_back.hovering(up):
-                        running_generation = False
-                    elif btn_generate.hovering(up):
-                        # TODO: generate only winnable games
-                        if cnt_b_minus_g.value >= 0:
-                            print('Game was generated')
-                            G = generate_game(number_of_nodes=cnt_nodes.value, 
-                                                bank_minus_genus=cnt_b_minus_g.value, 
-                                                display_layout=OPTIONS['layout'])
-                            btn_proceed.is_active = True
-                        else:
-                            print('This must be non-negative')
-                    elif btn_proceed.hovering(up):
-                        GameWindow(G)
-                elif event.button in {4,5}:
-                    cnt_nodes.hovering(up, add=1 if event.button == 4 else -1)
-                    cnt_b_minus_g.hovering(up, add=1 if event.button == 4 else -1)
-            elif event.type == pygame.QUIT:
-                running_generation = False
-        
-
-        btn_back.draw(screen, my_font)
-        btn_generate.draw(screen, my_font)
-        btn_proceed.draw(screen, my_font)
-        cnt_nodes.draw(screen, my_font)
-        cnt_b_minus_g.draw(screen, my_font)
-        
-        # display graph
-        if not G is None:
-            display_nodes_edges(G)
-            display_labels(G, sandbox=False, y_shift_genus_bank=True)
-        # hover tooltips
-        mouse = pygame.mouse.get_pos()
-        hover.display(mouse, screen, my_font_hover)
-        # blue outline
-        pygame.draw.rect(screen, THEME['sandbox_outline'], [0, 0, WIDTH, HEIGHT], 4)
-        # field
-        pygame.draw.rect(screen, THEME['field_outline'], [WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
-        pygame.display.update()
 
 
 def OpenGameWindow():
@@ -552,13 +525,12 @@ def OptionsWindow():
 
 def MenuWindow():
     pygame.display.set_caption('Menu')
-    D, d, h = 50, 30, 76
+    D, d, h = 50, 44, 90
     btn_create = Button((200, D +(h+d)*0), (400, h), 'CREATE', hover_text='open a sandbox')
-    btn_generate = Button((200, D +(h+d)*1), (400, h), 'GENERATE', hover_text='generate a game')
-    btn_open = Button((200, D +(h+d)*2), (400, h), 'OPEN', hover_text='open an existing game')
-    btn_options = Button((200, D +(h+d)*3), (400, h), 'OPTIONS', hover_text='configure soem shit')
-    btn_exit = Button((200, D +(h+d)*4), (400, h), 'EXIT', hover_text='you can click the red X btn though')
-    hover = HoverTooltip(objects=[btn_generate, btn_options, btn_exit, btn_create, btn_open])
+    btn_open = Button((200, D +(h+d)*1), (400, h), 'OPEN', hover_text='open an existing game')
+    btn_options = Button((200, D +(h+d)*2), (400, h), 'OPTIONS', hover_text='configure soem shit')
+    btn_exit = Button((200, D +(h+d)*3), (400, h), 'EXIT')
+    hover = HoverTooltip(objects=[btn_options, btn_create, btn_open])
 
     running_menu = True
     while running_menu:
@@ -569,10 +541,7 @@ def MenuWindow():
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
                 if event.button == 1:
-                    if btn_generate.hovering(up):
-                        GenerateGameWindow()
-                        pygame.display.set_caption('Menu')
-                    elif btn_options.hovering(up):
+                    if btn_options.hovering(up):
                         print('Options')
                         OptionsWindow()
                         pygame.display.set_caption('Menu')
@@ -591,7 +560,6 @@ def MenuWindow():
 
         btn_create.draw(screen, my_font)
         btn_open.draw(screen, my_font)
-        btn_generate.draw(screen, my_font)
         btn_options.draw(screen, my_font)
         btn_exit.draw(screen, my_font)
 
