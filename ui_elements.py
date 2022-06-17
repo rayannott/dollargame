@@ -1,9 +1,10 @@
+from ast import arg
 import pygame
 from utils import THEME, PANEL_HEIGHT
 
 class Button():
-    def __init__(self, topleft, size, text, is_active=True, 
-                    is_visible=True, bg_color=THEME['button_default'], hover_text='this is helpful'):
+    def __init__(self, topleft, size, text, is_active=True, is_visible=True, 
+            bg_color=THEME['button_default'], hover_text='this is helpful',  text_placement_specifier='default'):
         self.topleft = topleft
         self.size = size
         self.is_active = is_active
@@ -12,6 +13,7 @@ class Button():
         self.is_visible = is_visible
         self.hover_text = hover_text
         self.bg_color = bg_color
+        self.text_placement_specifier = text_placement_specifier
 
     def draw(self, screen, font):
         def color_active(col):
@@ -22,7 +24,11 @@ class Button():
             color = color_active(self.bg_color)
             pygame.draw.rect(screen, (255, 255, 255), [x, y, wi, he], width=4)
             pygame.draw.rect(screen, color, [x+4, y+4, wi-8, he-8])
-            position = x + wi//8, y + he//4
+            if self.text_placement_specifier == 'text_input':
+                
+                position = x + he//4, y + he//4
+            else:
+                position = x + wi//8, y + he//4 
             screen.blit(font.render(self.text, False, (255, 255, 255)), position)
     
     def hovering(self, pos): 
@@ -31,7 +37,7 @@ class Button():
 
 
 class Counter(Button):
-    def __init__(self, topleft, size, text, is_active=True, is_visible=True, bounds=(-100, 100), bg_color=THEME['button_default'], hover_text='a counter', value=0):
+    def __init__(self, topleft, size, text, is_active=True, is_visible=True, bg_color=THEME['button_default'], hover_text='a counter',  bounds=(-100, 100), value=0):
         super().__init__(topleft, size, text, is_active, is_visible, bg_color, hover_text)
         self.value = value
         self.bounds = bounds
@@ -79,3 +85,12 @@ class Panel():
         screen.blit(font.render(str(self.data['num_of_plays']), False, (255,255,255)), (x+270, y+10))
         screen.blit(font.render(str(self.data['best_score']), False, (255,255,255)), (x+400, y+10))
         screen.blit(font.render(str(self.data['date_created']), False, (255,255,255)), (x+560, y+10))
+
+class TextInput(Button):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.input_mode = False
+        self.text_placement_specifier = 'text_input'
+    def draw(self, screen, font):
+        self.bg_color = THEME['button_default'] if self.input_mode else THEME['button_inactive']
+        super().draw(screen, font)

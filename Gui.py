@@ -4,7 +4,7 @@ from Graph import DGGraph, load_game, generate_game, find_best, show_instruction
 from utils import *
 from itertools import count
 from math import sqrt
-from ui_elements import Button, HoverTooltip, Panel, Counter
+from ui_elements import Button, HoverTooltip, Panel, Counter, TextInput
 from copy import deepcopy
 import os
 
@@ -427,8 +427,8 @@ def OptionsWindow():
     sort_by_num = SORTBY_LIST.index(sort_by)
     layout = OPTIONS['layout']
     layout_num = LAYOUT_LIST.index(layout)
-    game_number = 0
-
+    game_number = 0 # TODO: change default to the last
+    cmdline = Commands()
 
     btn_back = Button(topleft=(10, 550), size=(100, 40), 
                             text='Back', hover_text='go back to the menu (you did click the save btn, right?)')
@@ -445,7 +445,9 @@ def OptionsWindow():
     cnt_game_number = Counter(topleft=(15, 230), size=(120, 40), bounds=(0, 1000),
                             text='Game #', value=game_number, hover_text='choose a game by its number')
     btn_delete_game = Button(topleft=(200, 230), size=(120, 40), 
-                            text='Delete', hover_text=f'delete game #{game_number}', bg_color=(255, 0, 0))
+                            text='Delete', hover_text=f'delete game #{game_number}', bg_color=RED)
+    txt_console = TextInput(topleft=(330, 30), size=(430, 40),
+                            text='', hover_text=f'', text_placement_specifier='input_text')
     
     hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, 
                                     btn_sort_by, btn_layout, btn_show_best_possible, cnt_game_number, btn_delete_game])
@@ -456,6 +458,7 @@ def OptionsWindow():
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 down = pygame.mouse.get_pos()
+                txt_console.input_mode = False
             elif event.type == pygame.MOUSEBUTTONUP:
                 up = pygame.mouse.get_pos()
                 if event.button == 1:
@@ -486,13 +489,45 @@ def OptionsWindow():
                             print(f'Game #{game_number} has been deleted')
                         else:
                             print(f'Error: {myfile} file not found')
+                    elif txt_console.hovering(up):
+                        txt_console.input_mode = not txt_console.input_mode
                 elif event.button in {4,5}:
                     cnt_game_number.hovering(up, add=1 if event.button == 4 else -1)
                     game_number = cnt_game_number.value
                     btn_delete_game.hover_text = f'delete game #{game_number}'
+            elif event.type == pygame.KEYDOWN and txt_console.input_mode:
+                if event.key == pygame.K_BACKSPACE:
+                    txt_console.text = txt_console.text[:-1]
+                elif event.key == pygame.K_RETURN:
+                    print(txt_console.text)
+                    # commands processing
+                    try:
+                        should_log = True
+                        command, params, options = cmdline.process(txt_console.text)
+                        print(command, params, options)
+                        if command == 'delete':
+                            messages = cmdline.delete_game(params)
+                        elif command == 'reset':
+                            messages = cmdline.reset_game(params)
+                        elif command == 'help':
+                            messages = cmdline.help(params)
+                        elif command == 'change':
+                            messages = cmdline.change_game(params, options)
+                        elif command == 'clear':
+                            cmdline.console_log = []
+                            should_log = False
+                        if should_log:
+                            cmdline.log(messages)
+                    except KeyError as e:
+                        print(str(e), len(str(e)))
+                        cmdline.log(str(e)[1:-1])
+                    txt_console.text = ''
+                elif event.key == pygame.K_ESCAPE:
+                    txt_console.input_mode = False
+                else:
+                    txt_console.text += event.unicode
             elif event.type == pygame.QUIT:
                 running_options = False
-        
 
         btn_back.draw(screen, my_font)
         btn_save.draw(screen, my_font)
@@ -500,6 +535,7 @@ def OptionsWindow():
         btn_show_best_possible.draw(screen, my_font)
         btn_sort_by.draw(screen, my_font)
         btn_layout.draw(screen, my_font)
+        txt_console.draw(screen, my_font)
         btn_delete_game.draw(screen, my_font)
         cnt_game_number.draw(screen, my_font)
 
@@ -520,6 +556,10 @@ def OptionsWindow():
 
         # light yellow outline
         pygame.draw.rect(screen, THEME['options_outline'], [0, 0, WIDTH, HEIGHT], 4)
+        pygame.draw.rect(screen, WHITE, [330, 73, 430, 517], 4) # console logs
+        for i, log in enumerate(cmdline.console_log[-20:]):
+            screen.blit(my_font.render(log, False, WHITE), 
+                (337, 80 + i*23))
         pygame.display.update()
 
 
@@ -574,3 +614,4 @@ def MenuWindow():
 
 if __name__ == '__main__':
     MenuWindow()
+    
