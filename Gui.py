@@ -37,7 +37,8 @@ def display_prev_stats(game_number, best=None):
     if not best is None:
         screen.blit(my_font.render(f'Best = {best}', False, GREEN), (20, 130))
     dots = '...'
-    screen.blit(my_font.render(f'Game #{game_number if game_number is not None else dots}', False, GREEN), (20, 110))
+    screen.blit(my_font.render(
+        f'Game #{game_number if game_number is not None else dots}', False, GREEN), (20, 110))
 
 
 def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
@@ -48,13 +49,16 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
         screen.blit(my_font_bigger.render(str(current_value), False,
                     WHITE if current_value >= 0 else RED), (pos[0]+20, pos[1]+12))
         if OPTIONS['show_node_ids']:
-            text_node_indices = my_font.render(str(n), False, THEME['indices_text'])
+            text_node_indices = my_font.render(
+                str(n), False, THEME['indices_text'])
             screen.blit(text_node_indices, (pos[0]-36, pos[1]-14))
-    
+
     # display parameters (genus, bank) and indicator
     shift = 90 if y_shift_genus_bank else 0
-    screen.blit(my_font.render(f'GENUS = {G.genus}', False, WHITE), (20, 40 + shift))
-    screen.blit(my_font.render(f'BANK = {G.bank}', False, WHITE), (20, 60 + shift))
+    screen.blit(my_font.render(
+        f'GENUS = {G.genus}', False, WHITE), (20, 40 + shift))
+    screen.blit(my_font.render(
+        f'BANK = {G.bank}', False, WHITE), (20, 60 + shift))
 
     # sandbox if .. True else game
     if sandbox:
@@ -63,7 +67,8 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
             'valid' if valid else 'invalid', False, GREEN if valid else RED), (20, 80))
     else:
         if not y_shift_genus_bank:
-            screen.blit(my_font.render(f'MOVES = {num_moves}', False, WHITE), (20, 80 + shift))
+            screen.blit(my_font.render(
+                f'MOVES = {num_moves}', False, WHITE), (20, 80 + shift))
 
 
 def display_nodes_edges(G):
@@ -90,20 +95,21 @@ def SandboxWindow():
 
     G = DGGraph()
     cnt = count(0)
-    btn_generate = Button(topleft=(15, 230), size=(135, 40), 
-                            text='Generate', hover_text='generate a new game')
+    btn_generate = Button(topleft=(15, 230), size=(135, 40),
+                          text='Generate', hover_text='generate a new game')
     cnt_nodes = Counter(topleft=(15, 280), size=(110, 40), value=6, bounds=(3, 100),
-                            text='Nodes', hover_text='enter the number of nodes')
+                        text='Nodes', hover_text='enter the number of nodes')
     cnt_b_minus_g = Counter(topleft=(15, 330), size=(110, 40), value=2, bounds=(0, 100),
                             text='B-G', hover_text='bank - genus; 0 is the most difficult (no extra dollars)')
-    btn_clear = Button(topleft=(30, 410), size=(100, 40), 
-                        text='Clear', hover_text='clears the field')
-    btn_proceed = Button(topleft=(30, 460), size=(100, 40), 
-                        text='Proceed', is_active=False, hover_text='play!')
+    btn_clear = Button(topleft=(30, 410), size=(100, 40),
+                       text='Clear', hover_text='clears the field')
+    btn_proceed = Button(topleft=(30, 460), size=(100, 40),
+                         text='Proceed', is_active=False, hover_text='play!')
     btn_discard = Button(topleft=(30, 510), size=(100, 40), text='Discard',
-                        hover_text='go back (loses progress)')
-    hover = HoverTooltip(objects=[btn_proceed, btn_discard, btn_generate, cnt_b_minus_g, cnt_nodes, btn_clear])
-    
+                         hover_text='go back (loses progress)')
+    hover = HoverTooltip(objects=[
+                         btn_proceed, btn_discard, btn_generate, cnt_b_minus_g, cnt_nodes, btn_clear])
+
     # Game creation loop
     while running:
         screen.fill(THEME['background'])
@@ -125,9 +131,9 @@ def SandboxWindow():
                                 running = False
                             elif btn_generate.hovering(up):
                                 print('Game was generated')
-                                G = generate_game(number_of_nodes=cnt_nodes.value, 
-                                                    bank_minus_genus=cnt_b_minus_g.value, 
-                                                    display_layout=OPTIONS['layout'])
+                                G = generate_game(number_of_nodes=cnt_nodes.value,
+                                                  bank_minus_genus=cnt_b_minus_g.value,
+                                                  display_layout=OPTIONS['layout'])
                                 cnt = count(G.number_of_nodes())
                                 btn_proceed.is_active = True
                             elif btn_discard.hovering(up):
@@ -135,9 +141,11 @@ def SandboxWindow():
                             elif btn_clear.hovering(up):
                                 G = DGGraph()
                                 cnt = count(0)
-                        elif event.button in {4,5}:
-                            cnt_nodes.hovering(up, add=1 if event.button == 4 else -1)
-                            cnt_b_minus_g.hovering(up, add=1 if event.button == 4 else -1)
+                        elif event.button in {4, 5}:
+                            cnt_nodes.hovering(
+                                up, add=1 if event.button == 4 else -1)
+                            cnt_b_minus_g.hovering(
+                                up, add=1 if event.button == 4 else -1)
                     else:
                         down_bool, node_down = mouse_on_node(G, down)
                         up_bool, node_up = mouse_on_node(G, up)
@@ -155,7 +163,7 @@ def SandboxWindow():
                                     if (node_down, node_up) in G.edges:
                                         remove_edge(G, node_down, node_up)
                                     else:
-                                        create_edge(G, node_down, node_up) 
+                                        create_edge(G, node_down, node_up)
                         else:
                             if dist(down, up) < 20 and far_enough_from_nodes(G, down):
                                 create_node(G, next(cnt), down)
@@ -166,10 +174,11 @@ def SandboxWindow():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     down_shift = pygame.mouse.get_pos()
                     holding_with_shift = True
-                    down_bool_shift, node_down_shift = mouse_on_node(G, down_shift)
+                    down_bool_shift, node_down_shift = mouse_on_node(
+                        G, down_shift)
                 elif event.type == pygame.MOUSEBUTTONUP:
                     holding_with_shift = False
-        
+
         # moving the nodes
         if holding_with_shift and down_bool_shift:
             G.nodes[node_down_shift]['pos'] = pygame.mouse.get_pos()
@@ -181,14 +190,17 @@ def SandboxWindow():
         if holding_down:
             pos = pygame.mouse.get_pos()
             if down_bool:
-                hovering_node_bool, hovering_node_number = mouse_on_node(G, pos)
+                hovering_node_bool, hovering_node_number = mouse_on_node(
+                    G, pos)
                 if hovering_node_bool:
-                    color = RED if (node_down, hovering_node_number) in G.edges else (120, 205, 0)
-                    pygame.draw.line(screen, color, 
-                                    G.nodes[node_down]['pos'], G.nodes[hovering_node_number]['pos'], 2)
+                    color = RED if (
+                        node_down, hovering_node_number) in G.edges else (120, 205, 0)
+                    pygame.draw.line(screen, color,
+                                     G.nodes[node_down]['pos'], G.nodes[hovering_node_number]['pos'], 2)
                 else:
-                    pygame.draw.line(screen, (150, 150, 150), G.nodes[node_down]['pos'], pos, 2)
-        
+                    pygame.draw.line(screen, (150, 150, 150),
+                                     G.nodes[node_down]['pos'], pos, 2)
+
         btn_proceed.is_active = is_game_valid(G)
         btn_proceed.draw(screen, my_font)
         btn_discard.draw(screen, my_font)
@@ -205,19 +217,21 @@ def SandboxWindow():
         pygame.draw.rect(screen, (213, 88, 251), [0, 0, WIDTH, HEIGHT], 4)
         # sandbox field
         pygame.draw.rect(screen, THEME['field_outline'], [
-                        WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
+            WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
-
 
 
 def OpenGameWindow():
     print('OpenGameWindow is opened')
-    btn_back = Button((10, 550), (100, 40), 'back', hover_text='go back to menu')
-    btn_randomgame = Button((120, 550), (100, 40), 'random', hover_text='start with a random saved game')
+    btn_back = Button((10, 550), (100, 40), 'back',
+                      hover_text='go back to menu')
+    btn_randomgame = Button((120, 550), (100, 40), 'random',
+                            hover_text='start with a random saved game')
     btn_shiftdown = Button((745, 550), (45, 40), '  d')
     btn_shiftup = Button((690, 550), (45, 40), '  u')
     update = True
-    hover = HoverTooltip(objects=[btn_back, btn_randomgame], topleft=(240, 570))
+    hover = HoverTooltip(
+        objects=[btn_back, btn_randomgame], topleft=(240, 570))
 
     running_opengame = True
     while running_opengame:
@@ -246,7 +260,7 @@ def OpenGameWindow():
                         # here we handle clicking the panels
                         panel_number = what_rect_hover(up)
                         if panel_number is not None:
-                            opened_game =  panels9[panel_number].data
+                            opened_game = panels9[panel_number].data
                             game_number = opened_game['game_number']
                             filename = f'{game_number}.json'
                             g = load_game(filename)
@@ -260,7 +274,7 @@ def OpenGameWindow():
 
             elif event.type == pygame.QUIT:
                 running_opengame = False
-        
+
         if update:
             pygame.display.set_caption('Open game...')
             df = assemble_games_dataframe()
@@ -268,7 +282,7 @@ def OpenGameWindow():
             start, finish = 0, 9
             panels9 = panels[start:finish]
             update = False
-        
+
         btn_back.draw(screen, my_font)
         btn_randomgame.draw(screen, my_font)
         btn_shiftdown.draw(screen, my_font)
@@ -298,8 +312,9 @@ def GameWindow(g, filename=None):
     # TODO: display best possible score (optional)
     pygame.display.set_caption('Game')
     field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
-    
-    btn_best = Button(topleft=(30, 390), size=(100, 40), text='Best', is_active=OPTIONS['show_best_possible'])
+
+    btn_best = Button(topleft=(30, 390), size=(100, 40),
+                      text='Best', is_active=OPTIONS['show_best_possible'])
     btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save')
     btn_back = Button(topleft=(30, 510), size=(100, 40), text='Back')
     hover = HoverTooltip(objects=[btn_best, btn_save, btn_back])
@@ -325,11 +340,12 @@ def GameWindow(g, filename=None):
     only_once = True
     show_best_moves = False
     moves = []
-    g_not_solved = deepcopy(g) # what the fuck is a deepcopy????
-    
+    g_not_solved = deepcopy(g)  # what the fuck is a deepcopy????
+
     if OPTIONS['show_best_possible']:
         moves_best, min_num_moves = find_best(g, N=100)
-        print(', '.join(show_instruction(moves_best))) # output optimal strategy to the console
+        # output optimal strategy to the console
+        print(', '.join(show_instruction(moves_best)))
         # TODO: threading?
 
     while running_game:
@@ -343,7 +359,8 @@ def GameWindow(g, filename=None):
                     if not field_rect.collidepoint(up):
                         if btn_save.hovering(up):
                             if is_victory:
-                                filename = save_finished_game(g_not_solved, moves, filename)
+                                filename = save_finished_game(
+                                    g_not_solved, moves, filename)
                                 btn_save.is_active = False
                             else:
                                 print('Save empty game')
@@ -392,8 +409,7 @@ def GameWindow(g, filename=None):
             print('You won!')
             btn_save.is_active = True
             only_once = False
-        
-        
+
         btn_save.draw(screen, my_font)
         btn_back.draw(screen, my_font)
         display_prev_stats(val, best)
@@ -402,14 +418,16 @@ def GameWindow(g, filename=None):
 
         if OPTIONS['show_best_possible']:
             btn_best.draw(screen, my_font)
-            screen.blit(my_font.render(f'best possible', False, YELLOW), (20, 157))
-            screen.blit(my_font.render(f'score: {min_num_moves}', False, YELLOW), (20, 175))
-            
+            screen.blit(my_font.render(
+                f'best possible', False, YELLOW), (20, 157))
+            screen.blit(my_font.render(
+                f'score: {min_num_moves}', False, YELLOW), (20, 175))
+
             if show_best_moves:
                 for i, hint in enumerate(show_instruction(moves_best)):
-                    screen.blit(default_font.render(f'{hint}', False, YELLOW), 
-                                            (15 + i//10 * 72, 193 + (i-i//10*10)*18))
-        
+                    screen.blit(default_font.render(f'{hint}', False, YELLOW),
+                                (15 + i//10 * 72, 193 + (i-i//10*10)*18))
+
         # orange outline (when not solved)
         pygame.draw.rect(screen, THEME['playing_outline'] if not is_victory else THEME['won_outline'], [
                          0, 0, WIDTH, HEIGHT], 4)
@@ -429,23 +447,23 @@ def OptionsWindow():
     layout_num = LAYOUT_LIST.index(layout)
     cmdline = Commands()
 
-    btn_back = Button(topleft=(10, 550), size=(100, 40), 
-                            text='Back', hover_text='go back to the menu (you did click the save btn, right?)')
-    btn_save = Button(topleft=(10, 500), size=(120, 40), 
-                            text='Save', hover_text='save the changes')
-    btn_show_ind = Button(topleft=(15, 30), size=(120, 40), 
-                            text='Indices', hover_text='show nodes\' indices')
-    btn_show_best_possible = Button(topleft=(15, 80), size=(120, 40), 
-                            text='Best', hover_text='show least possible number of moves for the current game')
-    btn_sort_by = Button(topleft=(15, 130), size=(120, 40), 
-                            text='Sortby', hover_text='choose how to sort games in the game opening window')
-    btn_layout = Button(topleft=(15, 180), size=(120, 40), 
-                            text='Layout', hover_text='choose a layout for a generated game')
+    btn_back = Button(topleft=(10, 550), size=(100, 40),
+                      text='Back', hover_text='go back to the menu (you did click the save btn, right?)')
+    btn_save = Button(topleft=(10, 500), size=(120, 40),
+                      text='Save', hover_text='save the changes')
+    btn_show_ind = Button(topleft=(15, 30), size=(120, 40),
+                          text='Indices', hover_text='show nodes\' indices')
+    btn_show_best_possible = Button(topleft=(15, 80), size=(120, 40),
+                                    text='Best', hover_text='show least possible number of moves for the current game')
+    btn_sort_by = Button(topleft=(15, 130), size=(120, 40),
+                         text='Sortby', hover_text='choose how to sort games in the game opening window')
+    btn_layout = Button(topleft=(15, 180), size=(120, 40),
+                        text='Layout', hover_text='choose a layout for a generated game')
     txt_console = TextInput(topleft=(330, 30), size=(460, 40),
                             text='', hover_text=f'', text_placement_specifier='input_text')
-    
-    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind, 
-                                    btn_sort_by, btn_layout, btn_show_best_possible])
+
+    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind,
+                                  btn_sort_by, btn_layout, btn_show_best_possible])
 
     running_options = True
     while running_options:
@@ -487,9 +505,11 @@ def OptionsWindow():
                         # commands processing
                         try:
                             cmdline.log('>'+txt_console.text)
-                            command, params, options = cmdline.process(txt_console.text)
+                            command, params, options = cmdline.process(
+                                txt_console.text)
                             if command != 'clear':
-                                messages = cmdline.cmds[command]['function'](params, options)
+                                messages = cmdline.cmds[command]['function'](
+                                    params, options)
                                 cmdline.log(messages)
                             else:
                                 cmdline.console_log = []
@@ -520,32 +540,36 @@ def OptionsWindow():
 
         # some text
         x, y = btn_show_ind.topleft
-        screen.blit(my_font.render(str(show_indices), False, GREEN if show_indices else RED), 
+        screen.blit(my_font.render(str(show_indices), False, GREEN if show_indices else RED),
                     (x + btn_show_ind.size[0] + 5, y + 13))
-        screen.blit(my_font.render(str(show_best_possible), False, GREEN if show_best_possible else RED), 
+        screen.blit(my_font.render(str(show_best_possible), False, GREEN if show_best_possible else RED),
                     (x + btn_show_ind.size[0] + 5, y + 60))
-        screen.blit(my_font.render(sort_by, False, WHITE), 
+        screen.blit(my_font.render(sort_by, False, WHITE),
                     (x + btn_show_ind.size[0] + 5, y + 108))
-        screen.blit(my_font.render(layout, False, WHITE), 
+        screen.blit(my_font.render(layout, False, WHITE),
                     (x + btn_show_ind.size[0] + 5, y + 155))
 
         # light yellow outline
-        pygame.draw.rect(screen, THEME['options_outline'], [0, 0, WIDTH, HEIGHT], 4)
+        pygame.draw.rect(screen, THEME['options_outline'], [
+                         0, 0, WIDTH, HEIGHT], 4)
         # console logs
         pygame.draw.rect(screen, WHITE, [330, 73, 460, 517], 4)
         for i, log in enumerate(cmdline.console_log[-22:]):
-            screen.blit(my_font.render(log, False, WHITE), 
-                (337, 80 + i*23))
+            screen.blit(my_font.render(log, False, WHITE),
+                        (337, 80 + i*23))
         pygame.display.update()
 
 
 def MenuWindow():
     pygame.display.set_caption('Menu')
     D, d, h = 50, 44, 90
-    btn_create = Button((200, D +(h+d)*0), (400, h), 'CREATE', hover_text='open a sandbox')
-    btn_open = Button((200, D +(h+d)*1), (400, h), 'OPEN', hover_text='open an existing game')
-    btn_options = Button((200, D +(h+d)*2), (400, h), 'OPTIONS', hover_text='configure soem shit')
-    btn_exit = Button((200, D +(h+d)*3), (400, h), 'EXIT')
+    btn_create = Button((200, D + (h+d)*0), (400, h),
+                        'CREATE', hover_text='open a sandbox')
+    btn_open = Button((200, D + (h+d)*1), (400, h), 'OPEN',
+                      hover_text='open an existing game')
+    btn_options = Button((200, D + (h+d)*2), (400, h),
+                         'OPTIONS', hover_text='configure soem shit')
+    btn_exit = Button((200, D + (h+d)*3), (400, h), 'EXIT')
     hover = HoverTooltip(objects=[btn_options, btn_create, btn_open])
 
     running_menu = True
@@ -572,7 +596,6 @@ def MenuWindow():
                         pygame.display.set_caption('Menu')
             elif event.type == pygame.QUIT:
                 running_menu = False
-                
 
         btn_create.draw(screen, my_font)
         btn_open.draw(screen, my_font)
@@ -590,4 +613,3 @@ def MenuWindow():
 
 if __name__ == '__main__':
     MenuWindow()
-    

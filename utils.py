@@ -7,7 +7,8 @@ import pygame
 from math import sqrt
 
 PANEL_HEIGHT = 50
-WHITE, GREEN, RED, YELLOW = (255, 255, 255), (0, 255, 0), (255, 0, 0), (233, 218, 52)
+WHITE, GREEN, RED, YELLOW = (
+    255, 255, 255), (0, 255, 0), (255, 0, 0), (233, 218, 52)
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
          for ind in range(9)]
 WIDTH, HEIGHT = 800, 600
@@ -65,15 +66,17 @@ def assemble_games_dataframe():
         data['num_of_plays'] = len(plays)
         data['best_score'] = best_score
         data['date_created'] = dat['info']['date_created']
-        df.append(data) 
+        df.append(data)
     if OPTIONS['sort_by'] == 'date_created':
-        df.sort(key=lambda x : datetime.strptime(x['date_created'], '%d/%m/%Y %H:%M:%S'), reverse=True)
+        df.sort(key=lambda x: datetime.strptime(
+            x['date_created'], '%d/%m/%Y %H:%M:%S'), reverse=True)
     elif OPTIONS['sort_by'] == 'num_of_plays':
-        df.sort(key=lambda x : x['num_of_plays']) # sort by the number of plays
+        df.sort(key=lambda x: x['num_of_plays'])  # sort by the number of plays
     elif OPTIONS['sort_by'] == 'best_score':
-        df.sort(key=lambda x : x['best_score'] if type(x['best_score'])==int else -1, reverse=True)
+        df.sort(key=lambda x: x['best_score'] if type(
+            x['best_score']) == int else -1, reverse=True)
     elif OPTIONS['sort_by'] == 'game_number':
-        df.sort(key=lambda x : x['game_number'])
+        df.sort(key=lambda x: x['game_number'])
     return df
 
 
@@ -191,12 +194,12 @@ def far_enough_from_nodes(G, release_pos):
 # --- command handling
 
 
-class Commands:    
+class Commands:
     def __init__(self):
         # self.cmds = CMDS
         # self.cmds_set = {cmd['name'] for cmd in self.cmds}
         self.console_log = []
-    
+
     def process(self, inp):
         inp_split = [el.strip() for el in inp.split()]
         this_command = inp_split[0]
@@ -215,17 +218,18 @@ class Commands:
             num_of_args_needed = cmd_info['num_of_args']
             print(params, optional_params)
             if num_of_args_needed != -1 and num_of_args != num_of_args_needed:
-                raise KeyError(f'[ERROR] \'{this_command}\' command expects & {num_of_args_needed} argument, but {num_of_args} were given')
+                raise KeyError(
+                    f'[ERROR] \'{this_command}\' command expects & {num_of_args_needed} argument, but {num_of_args} were given')
             else:
                 return this_command, params, optional_params
-    
+
     def log(self, message):
         if '&' in message:
             for msg in message.split('&'):
                 self.console_log.append(msg)
         else:
             self.console_log.append(message)
-    
+
     # @staticmethod
     def to_integer(string_to_convert):
         try:
@@ -239,14 +243,14 @@ class Commands:
     def delete_game(params, options):
         game_number = Commands.to_integer(params[0])
         if isinstance(game_number, str):
-            return game_number 
+            return game_number
         myfile = f'games/{game_number}.json'
         if os.path.isfile(myfile):
             os.remove(myfile)
             return (f'game #{game_number} has been deleted')
         else:
             return (f'[ERROR] game #{game_number} does not exist')
-    
+
     def help(params, options):
         if '-yourself' not in options:
             if not len(params):
@@ -280,12 +284,12 @@ class Commands:
                 return f'[ERROR] game #{game_number} has never been solved'
         else:
             return f'[ERROR] game #{game_number} does not exist'
-    
+
     def change_game_data(params, options):
         game_number = Commands.to_integer(params[0])
         if isinstance(game_number, str):
             return game_number
-        
+
         myfile = f'games/{game_number}.json'
         if os.path.isfile(myfile):
             with open(myfile, 'r') as f:
@@ -294,17 +298,16 @@ class Commands:
             if new_note != '_':
                 game['info']['note'] = new_note
             if '-newdate' in options:
-                game['info']['date_created'] = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+                game['info']['date_created'] = datetime.now().strftime(
+                    "%d/%m/%Y %H:%M:%S")
             with open(myfile, 'w') as f:
-                    json.dump(game, f)
+                json.dump(game, f)
             return f'game #{game_number} data has been changed'
         else:
             return f'[ERROR] game #{game_number} does not exist'
-    
 
     def output_stats(params, options):
         return f'{params} {options}'
-    
 
     @staticmethod
     def special_join(list_of_action):
@@ -313,7 +316,7 @@ class Commands:
             symb = '&  ' if i and i % 3 == 0 else '  '
             res += f'{symb}{action}'
         return res
-         
+
     def solution(params, options):
         game_number = Commands.to_integer(params[0])
         if isinstance(game_number, str):
@@ -323,7 +326,8 @@ class Commands:
             if '-algo' in options:
                 g = load_game(myfile[6:])
                 moves_best, min_num_moves = find_best(g, N=100)
-                moves_str = Commands.special_join(show_instruction(moves_best, take_give_symbols='words'))
+                moves_str = Commands.special_join(
+                    show_instruction(moves_best, take_give_symbols='words'))
                 return f'(by the algorithm) game #{game_number}& collapsed number of moves: {min_num_moves}, &{moves_str}'
             else:
                 with open(myfile, 'r') as f:
@@ -335,9 +339,12 @@ class Commands:
                         if len(play['moves']) < min_number_so_far:
                             min_number_so_far = len(play['moves'])
                             best_play_so_far = play['moves']
-                    best_play_collapsed, min_num_collapsed = collapse_moves(best_play_so_far)
-                    best_play_instruction = show_instruction(best_play_collapsed, take_give_symbols='words')
-                    best_play_moves_str = Commands.special_join(best_play_instruction)
+                    best_play_collapsed, min_num_collapsed = collapse_moves(
+                        best_play_so_far)
+                    best_play_instruction = show_instruction(
+                        best_play_collapsed, take_give_symbols='words')
+                    best_play_moves_str = Commands.special_join(
+                        best_play_instruction)
                     return f'(by the player) game #{game_number}&collapsed number of moves: {min_num_collapsed}, &{best_play_moves_str}'
                 else:
                     return f'[ERROR] game #{game_number} has never been solved'
@@ -345,48 +352,47 @@ class Commands:
             return f'[ERROR] game #{game_number} does not exist'
         return 'printed'
 
-
     cmds = {
-        'delete': 
+        'delete':
         {'description': '> deletes a game by moving & it to the bin',
-        'num_of_args': 1,
-        'examples': ['delete 5 # deletes a game #5'],
-        'function': delete_game
-        },
-        'reset': 
+         'num_of_args': 1,
+         'examples': ['delete 5 # deletes a game #5'],
+         'function': delete_game
+         },
+        'reset':
         {'description': 'resets a game\'s progress & (erases all the previous attempts)',
-        'num_of_args': 1,
-        'examples': ['reset 10 # resets a game #10'],
-        'function': reset_game
-        },
+         'num_of_args': 1,
+         'examples': ['reset 10 # resets a game #10'],
+         'function': reset_game
+         },
         'help':
         {'description': 'show instruction for a command & or show a list of all & available commands',
-        'num_of_args': -1,
-        'examples': ['help delete', 'help'],
-        'function': help
-        },
+         'num_of_args': -1,
+         'examples': ['help delete', 'help'],
+         'function': help
+         },
         'change':
         {'description': 'changes game\'s note and & (optional) resets its creation & date to now',
-        'num_of_args': 2,
-        'examples': ['change 12 _ -newdate &# does not change the note but & resets the creation date', 
+         'num_of_args': 2,
+         'examples': ['change 12 _ -newdate &# does not change the note but & resets the creation date',
                         'change 12 new_note &# changes the note to \'new_note\'', 'change 12 _ # does nothing lol'],
-        'function': change_game_data
-        },
+         'function': change_game_data
+         },
         'clear':
         {'description': 'clears the console',
-        'num_of_args': 0,
-        'examples': ['clear']
-        },
+         'num_of_args': 0,
+         'examples': ['clear']
+         },
         'stats':
         {'description': 'creates a file with games\' statistics in it',
-        'num_of_args': 1,
-        'examples': ['stats stats.txt'],
-        'function': output_stats
-        },
+         'num_of_args': 1,
+         'examples': ['stats stats.txt'],
+         'function': output_stats
+         },
         'solution':
         {'description': 'prints the best solution by the player &or (optional) by the algorightm',
-        'num_of_args': 1,
-        'examples': ['solution 14', 'solution 14 -algo'],
-        'function': solution}
+         'num_of_args': 1,
+         'examples': ['solution 14', 'solution 14 -algo'],
+         'function': solution}
     }
     cmds_set = set(cmds.keys())
