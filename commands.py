@@ -142,7 +142,7 @@ class Commands:
         if os.path.isfile(myfile):
             if '-algo' in options:
                 g = load_game(myfile[6:])
-                moves_best, min_num_moves = find_best(g, N=400)
+                moves_best, min_num_moves = find_best(g, N=1000)
                 moves_str = Commands.special_join(
                     show_instruction(moves_best, take_give_symbols='words'))
                 return f'(by the algorithm) game #{game_number}& collapsed number of moves: {min_num_moves}, &{moves_str}'

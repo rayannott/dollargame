@@ -1,12 +1,13 @@
 import json
 import pygame
+from copy import deepcopy
+from itertools import count
+
+from ui_elements import Button, HoverTooltip, Panel, Counter, TextInput
 from Graph import DGGraph, load_game, generate_game, find_best, show_instruction
 from utils import *
-from itertools import count
-from math import sqrt
-from ui_elements import Button, HoverTooltip, Panel, Counter, TextInput
-from copy import deepcopy
-import os
+from commands import Commands
+
 
 pygame_icon = pygame.image.load('icon.png')
 pygame.display.set_icon(pygame_icon)
@@ -132,8 +133,8 @@ def SandboxWindow():
                             elif btn_generate.hovering(up):
                                 print('Game was generated')
                                 G = generate_game(number_of_nodes=cnt_nodes.value,
-                                                  bank_minus_genus=cnt_b_minus_g.value,
-                                                  display_layout=OPTIONS['layout'])
+                                                    bank_minus_genus=cnt_b_minus_g.value,
+                                                    display_layout=OPTIONS['layout'])
                                 cnt = count(G.number_of_nodes())
                                 btn_proceed.is_active = True
                             elif btn_discard.hovering(up):
@@ -448,17 +449,17 @@ def OptionsWindow():
     cmdline = Commands()
 
     btn_back = Button(topleft=(10, 550), size=(100, 40),
-                      text='Back', hover_text='go back to the menu (you did click the save btn, right?)')
+                      text='back', hover_text='go back to the menu (you did click the save btn, right?)')
     btn_save = Button(topleft=(10, 500), size=(120, 40),
-                      text='Save', hover_text='save the changes')
+                      text='save', hover_text='save the changes')
     btn_show_ind = Button(topleft=(15, 30), size=(120, 40),
-                          text='Indices', hover_text='show nodes\' indices')
+                          text='indices', hover_text='show nodes\' indices')
     btn_show_best_possible = Button(topleft=(15, 80), size=(120, 40),
                                     text='Best', hover_text='show least possible number of moves for the current game')
     btn_sort_by = Button(topleft=(15, 130), size=(120, 40),
-                         text='Sortby', hover_text='choose how to sort games in the game opening window')
+                         text='sort by', hover_text='choose how to sort games in the game opening window')
     btn_layout = Button(topleft=(15, 180), size=(120, 40),
-                        text='Layout', hover_text='choose a layout for a generated game')
+                        text='layout', hover_text='choose a layout for a generated game')
     txt_console = TextInput(topleft=(330, 30), size=(460, 40),
                             text='', hover_text=f'', text_placement_specifier='input_text')
 
@@ -505,6 +506,7 @@ def OptionsWindow():
                         # commands processing
                         try:
                             cmdline.log('>'+txt_console.text)
+                            cmdline.console_history.append(txt_console.text)
                             command, params, options = cmdline.process(
                                 txt_console.text)
                             if command != 'clear':
@@ -519,6 +521,10 @@ def OptionsWindow():
                         txt_console.text = ''
                     elif event.key == pygame.K_ESCAPE:
                         txt_console.input_mode = False
+                    elif event.key == pygame.K_UP:
+                        txt_console.text = cmdline.last_command()
+                    elif event.key == pygame.K_DOWN:
+                        txt_console.text = ''
                     else:
                         txt_console.text += event.unicode if event.unicode in ALLOWED_SYMBOLS else ''
                 elif event.key == pygame.K_RETURN:
