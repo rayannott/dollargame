@@ -33,10 +33,19 @@ Outside of the game field there are:
 ### Sandbox mode
 _Note: has <b>magenta</b> outline._
 
-The game can be created inside of the thin light blue rectangle. Click an empty region to create a node, use your mousewheel while hovering a node to change the latter's value. Left click and hold a node, then release on the other node to create an edge. You can also delete nodes and edges by yada-yada.
+The game can be created inside of the thin light blue rectangle. Click an empty region to create a node, use your mousewheel while hovering a node to change the latter's value. Left click and hold a node, then release on the other node to create an edge. You can also delete nodes and edges by repeating the corresponding action.
 
 ### Options window
 _Note: has <b>limeish</b> outline._
 
+Here you can configure some of the game's parameters such as:
+- <b>indices</b> [boolean]: whether to display nodes' indices when playing or creating (may be of help when requesting and examining the solutions);
+- <b>best</b> [boolean]: whether to give an option to peak the solution calculated by the algorithm when playing (note:when this is on some complicated games may take more time to load);
+- <b>sortby</b> [one of a list]: choose a parameter to sort games in the OpenWindow with;
+- <b>layout</b> [one of a list]: choose a layout in which newly generated games will be drawn.
+
+There is also a command line providing functionality to delete, reset, change the existing games or get in-depth statistics on them. Try 'help' to learn more.
+
 ### Open window
-...
+You will see the table of green panels which show games' information: number, an amount of nodes and edges and how many times they have been solved before; moreover, the best of those solutions is shown (measured by the number of moves: less is better). Scroll the mousewheel or use the 'u'/'d' buttons to navigate. Click a panel to proceed.
+
