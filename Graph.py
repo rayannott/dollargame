@@ -5,6 +5,7 @@ from datetime import datetime
 from copy import deepcopy
 from random import choice
 
+
 class DGGraph(nx.Graph):
     def __init__(self, **kwargs):
         super().__init__(self, **kwargs)
@@ -12,36 +13,36 @@ class DGGraph(nx.Graph):
         self.bank = 0
         self.debt = 0
         self._update_bank()
-    
+
     # indicators
     def is_connected(self):
         if len(self.nodes) > 0:
             return nx.is_connected(self)
         return False
     # sandbox mode
-        
+
     def add_node(self, node, val=0, pos=None):
         super().add_node(node, val=val, pos=pos)
         self._update_genus()
         self._update_bank()
         self._update_debt()
-    
+
     def add_nodes_from(self, nodes):
         pass
-    
+
     def add_edges_from(self, edges):
         pass
-    
+
     def remove_node(self, node):
         super().remove_node(node)
         self._update_genus()
         self._update_bank()
         self._update_debt()
-    
+
     def add_edge(self, s, f):
         super().add_edge(s, f)
         self._update_genus()
-    
+
     def remove_edge(self, s, f):
         super().remove_edge(s, f)
         self._update_genus()
@@ -50,35 +51,35 @@ class DGGraph(nx.Graph):
         self.nodes[node]['val'] += (1 if increase else -1)
         self._update_bank()
         self._update_debt()
-        
+
     def _update_genus(self):
         self.genus = self.number_of_edges() - self.number_of_nodes() + 1
-    
+
     def _update_bank(self):
         self.bank = sum([self.nodes[node]['val'] for node in self.nodes])
-        
+
     def _update_debt(self):
-        self.debt = sum([self.nodes[node]['val'] for node in self.nodes if self.nodes[node]['val'] < 0])
-    
+        self.debt = sum([self.nodes[node]['val']
+                        for node in self.nodes if self.nodes[node]['val'] < 0])
+
     # level mode
-        
+
     def take(self, node):
         neig = list(self.neighbors(node))
         for n in neig:
             self.nodes[n]['val'] -= 1
         self.nodes[node]['val'] += len(neig)
         self._update_debt()
-        
+
     def give(self, node):
         neig = list(self.neighbors(node))
         for n in neig:
             self.nodes[n]['val'] += 1
         self.nodes[node]['val'] -= len(neig)
         self._update_debt()
-    
+
     def is_victory(self):
         return self.debt == 0
-
 
 
 # utils
@@ -104,6 +105,7 @@ def random_connected_graph(n):
     # TODO: check if planar (how to generate a connected planar graph?)
     return G
 
+
 def random_list_of_values(n, bank=0):
     a = np.random.randint(-3, 4, n)
     diff = sum(a) - bank
@@ -117,6 +119,7 @@ def random_list_of_values(n, bank=0):
         a[-1] -= max(a)
     return a.tolist()
 
+
 def transform_positions(positions):
     # maps positions from networkx layout function to [210, 750] x [50, 550]
     pos = np.array(list(positions.values()))
@@ -124,12 +127,13 @@ def transform_positions(positions):
     delta = np.tile(mins, (len(positions), 1))
     pos -= delta
     pos /= np.tile(np.max(pos, axis=0), (len(positions), 1))
-    
+
     pos *= np.tile([540, 500], (len(positions), 1))
     pos += np.tile([210, 50], (len(positions), 1))
     pos = np.around(pos)
     res = dict(zip(positions.keys(), pos.tolist()))
     return res
+
 
 def generate_game(number_of_nodes: int, bank_minus_genus=0, display_layout='planar') -> DGGraph:
     '''
@@ -140,9 +144,10 @@ def generate_game(number_of_nodes: int, bank_minus_genus=0, display_layout='plan
         posit = nx.planar_layout(G)
     elif display_layout == 'shell':
         posit = nx.shell_layout(G)
-    
+
     genus = G.number_of_edges() - G.number_of_nodes() + 1
-    values = random_list_of_values(n=number_of_nodes, bank=genus + bank_minus_genus)
+    values = random_list_of_values(
+        n=number_of_nodes, bank=genus + bank_minus_genus)
     dt_string = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
     posit = transform_positions(posit)
     DG = DGGraph(info={'date_created': dt_string})
@@ -154,6 +159,7 @@ def generate_game(number_of_nodes: int, bank_minus_genus=0, display_layout='plan
 
 # game solving algorithm
 
+
 def collapse_moves(moves):
     collapsed = dict()
     for node, move in moves:
@@ -162,6 +168,7 @@ def collapse_moves(moves):
         collapsed[node] += 1 if move == 'take' else -1
     num_moves = sum([abs(num) for num in collapsed.values()])
     return collapsed, num_moves
+
 
 def solve(G):
     moves = []
@@ -175,7 +182,7 @@ def solve(G):
             moves.append((n, 'take'))
         if G.is_victory():
             return collapse_moves(moves)
-    
+
 
 def find_best(G, N=10):
     best_so_far = None
@@ -188,12 +195,14 @@ def find_best(G, N=10):
             min_num_of_moves = number_of_moves
     return best_so_far, min_num_of_moves
 
+
 def show_instruction(moves, take_give_symbols='arrows'):
     tmp = []
-    take_give = ['←', '→'] if take_give_symbols == 'arrows' else [' take', ' give']
+    take_give = ['←', '→'] if take_give_symbols == 'arrows' else [
+        ' take', ' give']
     for node, move in moves.items():
         if move > 0:
-            tmp.append(f'{node}{take_give[0]}({abs(move)})') 
+            tmp.append(f'{node}{take_give[0]}({abs(move)})')
         elif move < 0:
-            tmp.append(f'{node}{take_give[1]}({abs(move)})') 
+            tmp.append(f'{node}{take_give[1]}({abs(move)})')
     return tmp
