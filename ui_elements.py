@@ -77,7 +77,6 @@ class HoverTooltip():
 
 
 class Panel():
-    # add hovertooltips for the panels??
     def __init__(self, data):
         self.data = data
 

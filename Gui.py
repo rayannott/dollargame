@@ -35,11 +35,11 @@ def display_panels(panels):
 
 
 def display_prev_stats(game_number, best=None):
-    if not best is None:
-        screen.blit(my_font.render(f'Best = {best}', False, GREEN), (20, 130))
     dots = '...'
     screen.blit(my_font.render(
         f'Game #{game_number if game_number is not None else dots}', False, GREEN), (20, 110))
+    if not best is None:
+        screen.blit(my_font.render(f'Best = {best}', False, GREEN), (20, 130))
 
 
 def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
@@ -133,8 +133,8 @@ def SandboxWindow():
                             elif btn_generate.hovering(up):
                                 print('Game was generated')
                                 G = generate_game(number_of_nodes=cnt_nodes.value,
-                                                    bank_minus_genus=cnt_b_minus_g.value,
-                                                    display_layout=OPTIONS['layout'])
+                                                  bank_minus_genus=cnt_b_minus_g.value,
+                                                  display_layout=OPTIONS['layout'])
                                 cnt = count(G.number_of_nodes())
                                 btn_proceed.is_active = True
                             elif btn_discard.hovering(up):

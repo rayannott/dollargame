@@ -13,7 +13,7 @@ WHITE, GREEN, RED, YELLOW = (
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
          for ind in range(9)]
 WIDTH, HEIGHT = 800, 600
-ALLOWED_SYMBOLS = set(' 0123456789_-abcdefghijklmnopqrstuvwxyz')
+ALLOWED_SYMBOLS = set('abcdefghijklmnopqrstuvwxyz0123456789 _-.')
 SORTBY_LIST = ['date_created', 'num_of_plays', 'best_score', 'game_number']
 LAYOUT_LIST = ['planar', 'shell']
 
@@ -55,8 +55,6 @@ def assemble_games_dataframe():
             dat = json.load(f)
         data = {}
         graph = dat['graph']
-        values = graph['values'].values()
-        genus = len(graph['edges']) - len(values) + 1
         plays = dat['plays']
         if len(plays):
             best_score = min([len(play['moves']) for play in plays])
@@ -64,10 +62,12 @@ def assemble_games_dataframe():
             best_score = 'not solved'
         data['game_number'] = int(file[:-5])
         data['graph'] = (len(graph['values']), len(graph['edges']))
+        data['bank'] = sum(graph['values'].values())
         data['num_of_plays'] = len(plays)
         data['best_score'] = best_score
         data['date_created'] = dat['info']['date_created']
         df.append(data)
+    
     if OPTIONS['sort_by'] == 'date_created':
         df.sort(key=lambda x: datetime.strptime(
             x['date_created'], '%d/%m/%Y %H:%M:%S'), reverse=True)
@@ -80,6 +80,19 @@ def assemble_games_dataframe():
         df.sort(key=lambda x: x['game_number'])
     return df
 
+def best_solution_by_player(filename):
+    with open(f'games/{filename}', 'r') as f:
+        game = json.load(f)
+        if game['plays']:
+            min_number_so_far = 1000000
+            best_play_so_far = None
+            for play in game['plays']:
+                if len(play['moves']) < min_number_so_far:
+                    min_number_so_far = len(play['moves'])
+                    best_play_so_far = play['moves']
+            return best_play_so_far, min_number_so_far
+        else:
+            return None, None
 
 def save_finished_game(g, moves, filename):
     if filename is None:
