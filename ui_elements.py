@@ -83,7 +83,7 @@ class Panel():
     def draw(self, topleft, screen, font):
         x, y = topleft
         pygame.draw.rect(screen, THEME['open_game_panels'], [
-                         x, y, 770, PANEL_HEIGHT], 4)
+                         x, y, 766, PANEL_HEIGHT], 4)
         screen.blit(font.render(
             str(self.data['game_number']), False, (255, 255, 255)), (x+10, y+10))
         screen.blit(font.render(

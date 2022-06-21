@@ -30,7 +30,7 @@ def create_panels(df):
 
 def display_panels(panels):
     for ind, panel in enumerate(panels):
-        panel.draw(topleft=(15, PANEL_HEIGHT + ind*54),
+        panel.draw(topleft=(17, PANEL_HEIGHT + ind*54),
                    screen=screen, font=my_font)
 
 
@@ -452,19 +452,19 @@ def OptionsWindow():
                       text='back', hover_text='go back to the menu (you did click the save btn, right?)')
     btn_save = Button(topleft=(10, 500), size=(120, 40),
                       text='save', hover_text='save the changes')
-    btn_show_ind = Button(topleft=(15, 30), size=(120, 40),
+    btn_show_ind = Button(topleft=(10, 10), size=(120, 40),
                           text='indices', hover_text='show nodes\' indices')
-    btn_show_best_possible = Button(topleft=(15, 80), size=(120, 40),
+    btn_show_best_possible = Button(topleft=(10, 60), size=(120, 40),
                                     text='Best', hover_text='show least possible number of moves for the current game')
-    btn_sort_by = Button(topleft=(15, 130), size=(120, 40),
+    btn_sort_by = Button(topleft=(10, 110), size=(120, 40),
                          text='sort by', hover_text='choose how to sort games in the game opening window')
-    btn_layout = Button(topleft=(15, 180), size=(120, 40),
+    btn_layout = Button(topleft=(10, 160), size=(120, 40),
                         text='layout', hover_text='choose a layout for a generated game')
-    txt_console = TextInput(topleft=(330, 30), size=(460, 40),
-                            text='', hover_text=f'', text_placement_specifier='input_text')
+    txt_console = TextInput(topleft=(330, 10), size=(460, 40),
+                            text='', hover_text=f'this is the command line', text_placement_specifier='input_text')
 
     hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind,
-                                  btn_sort_by, btn_layout, btn_show_best_possible])
+                                  btn_sort_by, btn_layout, btn_show_best_possible, txt_console], topleft=(130, 567))
 
     running_options = True
     while running_options:
@@ -526,7 +526,8 @@ def OptionsWindow():
                     elif event.key == pygame.K_DOWN:
                         txt_console.text = ''
                     else:
-                        txt_console.text += event.unicode if event.unicode in ALLOWED_SYMBOLS else ''
+                        txt_console.text += event.unicode if event.unicode in ALLOWED_SYMBOLS and len(
+                            txt_console.text) < 33 else ''
                 elif event.key == pygame.K_RETURN:
                     txt_console.input_mode = True
             elif event.type == pygame.QUIT:
@@ -559,10 +560,10 @@ def OptionsWindow():
         pygame.draw.rect(screen, THEME['options_outline'], [
                          0, 0, WIDTH, HEIGHT], 4)
         # console logs
-        pygame.draw.rect(screen, WHITE, [330, 73, 460, 517], 4)
+        pygame.draw.rect(screen, WHITE, [330, 60, 460, 530], 4)
         for i, log in enumerate(cmdline.console_log[-22:]):
             screen.blit(my_font.render(log, False, WHITE),
-                        (337, 80 + i*23))
+                        (337, 65 + i*23))
         pygame.display.update()
 
 

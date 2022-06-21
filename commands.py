@@ -57,6 +57,14 @@ class Commands:
         except Exception as e:
             return str(e)
 
+    @staticmethod
+    def special_join(list_of_action):
+        res = ''
+        for i, action in enumerate(list_of_action):
+            symb = '&  ' if i and i % 4 == 0 else '  '
+            res += f'{symb}{action}'
+        return res
+
     # commands
 
     def delete_game(params, options):
@@ -142,38 +150,29 @@ class Commands:
             moves_best, best_by_algo = find_best(g, N=find_best_N)
             solution_by_algo = ' '.join(show_instruction(moves_best))
             solution_by_player_noncollapsed, best_by_player = best_solution_by_player(
-                    filename)
+                filename)
             if solution_by_player_noncollapsed is not None:
                 solution_by_player_collapsed, best_by_player_collapsed = collapse_moves(
                     solution_by_player_noncollapsed)
-                solution_by_player = ' '.join(show_instruction(solution_by_player_collapsed))
+                solution_by_player = ' '.join(
+                    show_instruction(solution_by_player_collapsed))
             else:
                 best_by_player_collapsed = 'none'
                 solution_by_player = 'none'
                 best_by_player = 'none'
-            
-            
+
             tmp.append(str(best_by_player))
             tmp.append(str(best_by_player_collapsed))
             tmp.append(solution_by_player)
             tmp.append(str(best_by_algo))
             tmp.append(solution_by_algo)
-            res.append(tmp)        
+            res.append(tmp)
         pprint(res)
-        
+
         with open(filename_to_generate, 'w', encoding='utf-8') as f:
             for r in res:
                 f.write('\t'.join(r) + '\n')
-        return f'file {filename_to_generate} has been & successfully generated' 
-
-
-    @staticmethod
-    def special_join(list_of_action):
-        res = ''
-        for i, action in enumerate(list_of_action):
-            symb = '&  ' if i and i % 4 == 0 else '  '
-            res += f'{symb}{action}'
-        return res
+        return f'file {filename_to_generate} has been & successfully generated & you can paste it into the excel sheet now'
 
     def solution(params, options):
         game_number = Commands.to_integer(params[0])
@@ -235,7 +234,7 @@ class Commands:
          'examples': ['clear']
          },
         'stats':
-        {'description': 'creates a file with games\' statistics in it',
+        {'description': 'creates a file with games\' statistics & (may take a few minutes)',
          'num_of_args': 1,
          'examples': ['stats stats.txt'],
          'function': output_stats
