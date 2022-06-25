@@ -23,7 +23,7 @@ class Button():
             x, y = self.topleft
             wi, he = self.size
             color = color_active(self.bg_color)
-            pygame.draw.rect(screen, (255, 255, 255), [x, y, wi, he], width=4)
+            pygame.draw.rect(screen, THEME['def'], [x, y, wi, he], width=4)
             pygame.draw.rect(screen, color, [x+4, y+4, wi-8, he-8])
             if self.text_placement_specifier == 'text_input':
 
@@ -31,7 +31,7 @@ class Button():
             else:
                 position = x + wi//8, y + he//4
             screen.blit(font.render(self.text, False,
-                        (255, 255, 255)), position)
+                        THEME['def']), position)
 
     def hovering(self, pos):
         res = self.rect.collidepoint(pos) and self.is_active
@@ -71,7 +71,7 @@ class HoverTooltip():
             if obj.hovering(pos):
                 self.text = obj.hover_text
                 screen.blit(font.render(self.text, False,
-                            (200, 200, 255)), self.topleft)
+                            THEME['hover_text']), self.topleft)
                 return
         self.text = ''
 
@@ -85,15 +85,15 @@ class Panel():
         pygame.draw.rect(screen, THEME['open_game_panels'], [
                          x, y, 766, PANEL_HEIGHT], 4)
         screen.blit(font.render(
-            str(self.data['game_number']), False, (255, 255, 255)), (x+10, y+10))
+            str(self.data['game_number']), False, THEME['def']), (x+10, y+10))
         screen.blit(font.render(
-            '/'.join(map(str, self.data['graph'])), False, (255, 255, 255)), (x+130, y+10))
+            '/'.join(map(str, self.data['graph'])), False, THEME['def']), (x+130, y+10))
         screen.blit(font.render(
-            str(self.data['num_of_plays']), False, (255, 255, 255)), (x+270, y+10))
+            str(self.data['num_of_plays']), False, THEME['def']), (x+270, y+10))
         screen.blit(font.render(
-            str(self.data['best_score']), False, (255, 255, 255)), (x+400, y+10))
+            str(self.data['best_score']), False, THEME['def']), (x+400, y+10))
         screen.blit(font.render(
-            str(self.data['date_created']), False, (255, 255, 255)), (x+560, y+10))
+            str(self.data['date_created']), False, THEME['def']), (x+560, y+10))
 
 
 class TextInput(Button):

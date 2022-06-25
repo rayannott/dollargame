@@ -4,24 +4,27 @@ import json
 from datetime import datetime
 from random import choice
 from math import sqrt
-
 from Graph import load_game
 
 PANEL_HEIGHT = 50
-WHITE, GREEN, RED, YELLOW = (
-    255, 255, 255), (0, 255, 0), (255, 0, 0), (233, 218, 52)
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
          for ind in range(9)]
 WIDTH, HEIGHT = 800, 600
 ALLOWED_SYMBOLS = set('abcdefghijklmnopqrstuvwxyz0123456789 _-.')
 SORTBY_LIST = ['date_created', 'num_of_plays', 'best_score', 'game_number']
 LAYOUT_LIST = ['planar', 'shell']
-
+THEME_LIST = ['dark', 'light']
 with open('options.json', 'r') as f:
     OPTIONS = json.load(f)
 
-with open('theme.json', 'r') as f:
-    THEME = json.load(f)
+def load_theme():
+    with open('theme.json', 'r') as f:
+        THEME_ALL = json.load(f)
+    THEME = THEME_ALL[OPTIONS['theme']]
+    return THEME
+
+THEME = load_theme()
+GREEN, RED, YELLOW = THEME['green'], THEME['red'], THEME['yellow']
 
 
 def get_list_of_game_files():
@@ -67,7 +70,7 @@ def assemble_games_dataframe():
         data['best_score'] = best_score
         data['date_created'] = dat['info']['date_created']
         df.append(data)
-    
+
     if OPTIONS['sort_by'] == 'date_created':
         df.sort(key=lambda x: datetime.strptime(
             x['date_created'], '%d/%m/%Y %H:%M:%S'), reverse=True)
@@ -79,6 +82,7 @@ def assemble_games_dataframe():
     elif OPTIONS['sort_by'] == 'game_number':
         df.sort(key=lambda x: x['game_number'])
     return df
+
 
 def best_solution_by_player(filename):
     with open(f'games/{filename}', 'r') as f:
@@ -93,6 +97,7 @@ def best_solution_by_player(filename):
             return best_play_so_far, min_number_so_far
         else:
             return None, None
+
 
 def save_finished_game(g, moves, filename):
     if filename is None:

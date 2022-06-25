@@ -48,7 +48,7 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
         current_value = G.nodes[n]['val']
         pos = G.nodes[n]['pos']
         screen.blit(my_font_bigger.render(str(current_value), False,
-                    WHITE if current_value >= 0 else RED), (pos[0]+20, pos[1]+12))
+                    THEME['def'] if current_value >= 0 else RED), (pos[0]+20, pos[1]+12))
         if OPTIONS['show_node_ids']:
             text_node_indices = my_font.render(
                 str(n), False, THEME['indices_text'])
@@ -57,9 +57,9 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
     # display parameters (genus, bank) and indicator
     shift = 90 if y_shift_genus_bank else 0
     screen.blit(my_font.render(
-        f'GENUS = {G.genus}', False, WHITE), (20, 40 + shift))
+        f'GENUS = {G.genus}', False, THEME['def']), (20, 40 + shift))
     screen.blit(my_font.render(
-        f'BANK = {G.bank}', False, WHITE), (20, 60 + shift))
+        f'BANK = {G.bank}', False, THEME['def']), (20, 60 + shift))
 
     # sandbox if .. True else game
     if sandbox:
@@ -69,17 +69,17 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
     else:
         if not y_shift_genus_bank:
             screen.blit(my_font.render(
-                f'MOVES = {num_moves}', False, WHITE), (20, 80 + shift))
+                f'MOVES = {num_moves}', False, THEME['def']), (20, 80 + shift))
 
 
 def display_nodes_edges(G):
     # nodes
     for node in G.nodes:
-        pygame.draw.circle(screen, (255, 255, 255),
+        pygame.draw.circle(screen, THEME['def'],
                            G.nodes[node]['pos'], 20, 2)
     # edges
     for s, f in G.edges:
-        pygame.draw.line(screen, (255, 255, 255),
+        pygame.draw.line(screen, THEME['def'],
                          G.nodes[s]['pos'],
                          G.nodes[f]['pos'], 2)
 
@@ -291,21 +291,21 @@ def OpenGameWindow():
 
         display_panels(panels9)
         screen.blit(my_font.render('Game #', False,
-                                   (255, 255, 255)), (15+10, 15))
+                                   THEME['def']), (15+10, 15))
         screen.blit(my_font.render('Nodes/Edges', False,
-                                   (255, 255, 255)), (15+130, 15))
+                                   THEME['def']), (15+130, 15))
         screen.blit(my_font.render('# of plays', False,
-                                   (255, 255, 255)), (15+270, 15))
+                                   THEME['def']), (15+270, 15))
         screen.blit(my_font.render('Least # of moves',
-                                   False, (255, 255, 255)), (15+400, 15))
+                                   False, THEME['def']), (15+400, 15))
         screen.blit(my_font.render('Date created', False,
-                                   (255, 255, 255)), (15+575, 15))
+                                   THEME['def']), (15+575, 15))
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
         hover.display(mouse, screen, my_font_hover)
 
-        pygame.draw.rect(screen, WHITE, [10, 10, 780, 530], 4)
+        pygame.draw.rect(screen, THEME['def'], [10, 10, 780, 530], 4)
         pygame.display.update()
 
 
@@ -446,6 +446,8 @@ def OptionsWindow():
     sort_by_num = SORTBY_LIST.index(sort_by)
     layout = OPTIONS['layout']
     layout_num = LAYOUT_LIST.index(layout)
+    theme = OPTIONS['theme']
+    theme_num = THEME_LIST.index(theme)
     cmdline = Commands()
 
     btn_back = Button(topleft=(10, 550), size=(100, 40),
@@ -460,11 +462,13 @@ def OptionsWindow():
                          text='sort by', hover_text='choose how to sort games in the game opening window')
     btn_layout = Button(topleft=(10, 160), size=(120, 40),
                         text='layout', hover_text='choose a layout for a generated game')
+    btn_theme = Button(topleft=(10, 210), size=(120, 40),
+                       text='theme', hover_text='change the theme (dark/light) (needs restarting)')
     txt_console = TextInput(topleft=(330, 10), size=(460, 40),
                             text='', hover_text=f'this is the command line', text_placement_specifier='input_text')
 
     hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind,
-                                  btn_sort_by, btn_layout, btn_show_best_possible, txt_console], topleft=(130, 567))
+                                  btn_sort_by, btn_layout, btn_show_best_possible, txt_console, btn_theme], topleft=(130, 567))
 
     running_options = True
     while running_options:
@@ -484,8 +488,10 @@ def OptionsWindow():
                         OPTIONS['sort_by'] = sort_by
                         OPTIONS['layout'] = layout
                         OPTIONS['show_best_possible'] = show_best_possible
+                        OPTIONS['theme'] = theme
                         with open('options.json', 'w') as f:
                             json.dump(OPTIONS, f)
+                        cmdline.log('info: saved successfully')
                     elif btn_show_ind.hovering(up):
                         show_indices = not show_indices
                     elif btn_show_best_possible.hovering(up):
@@ -496,12 +502,25 @@ def OptionsWindow():
                     elif btn_layout.hovering(up):
                         layout_num += 1
                         layout = LAYOUT_LIST[layout_num % len(LAYOUT_LIST)]
+                    elif btn_theme.hovering(up):
+                        theme_num += 1
+                        theme = THEME_LIST[theme_num % len(THEME_LIST)]
+                        cmdline.log(
+                            f'info: save and then restart the game to & update the theme to [{theme}]')
+
                     elif txt_console.hovering(up):
                         txt_console.input_mode = not txt_console.input_mode
             elif event.type == pygame.KEYDOWN:
                 if txt_console.input_mode:
                     if event.key == pygame.K_BACKSPACE:
-                        txt_console.text = txt_console.text[:-1]
+                        if pygame.key.get_mods() & pygame.KMOD_CTRL:
+                            print('pressed')
+                            tmp = txt_console.text.split()
+                            if tmp:
+                                tmp.pop()
+                                txt_console.text = ' '.join(tmp)
+                        else:
+                            txt_console.text = txt_console.text[:-1]
                     elif event.key == pygame.K_RETURN and txt_console.text:
                         # commands processing
                         try:
@@ -539,6 +558,7 @@ def OptionsWindow():
         btn_show_best_possible.draw(screen, my_font)
         btn_sort_by.draw(screen, my_font)
         btn_layout.draw(screen, my_font)
+        btn_theme.draw(screen, my_font)
         txt_console.draw(screen, my_font)
 
         # hover tooltips
@@ -551,18 +571,20 @@ def OptionsWindow():
                     (x + btn_show_ind.size[0] + 5, y + 13))
         screen.blit(my_font.render(str(show_best_possible), False, GREEN if show_best_possible else RED),
                     (x + btn_show_ind.size[0] + 5, y + 60))
-        screen.blit(my_font.render(sort_by, False, WHITE),
+        screen.blit(my_font.render(sort_by, False, THEME['def']),
                     (x + btn_show_ind.size[0] + 5, y + 108))
-        screen.blit(my_font.render(layout, False, WHITE),
-                    (x + btn_show_ind.size[0] + 5, y + 155))
+        screen.blit(my_font.render(layout, False, THEME['def']),
+                    (x + btn_show_ind.size[0] + 5, y + 160))
+        screen.blit(my_font.render(theme, False, THEME['def']),
+                    (x + btn_show_ind.size[0] + 5, y + 210))
 
         # light yellow outline
         pygame.draw.rect(screen, THEME['options_outline'], [
                          0, 0, WIDTH, HEIGHT], 4)
         # console logs
-        pygame.draw.rect(screen, WHITE, [330, 60, 460, 530], 4)
+        pygame.draw.rect(screen, THEME['def'], [330, 60, 460, 530], 4)
         for i, log in enumerate(cmdline.console_log[-22:]):
-            screen.blit(my_font.render(log, False, WHITE),
+            screen.blit(my_font.render(log, False, THEME['def']),
                         (337, 65 + i*23))
         pygame.display.update()
 
@@ -614,7 +636,7 @@ def MenuWindow():
         hover.display(mouse, screen, my_font_hover)
 
         # white outline
-        pygame.draw.rect(screen, WHITE, [0, 0, WIDTH, HEIGHT], 4)
+        pygame.draw.rect(screen, THEME['def'], [0, 0, WIDTH, HEIGHT], 4)
         pygame.display.update()
 
 
