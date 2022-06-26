@@ -514,7 +514,6 @@ def OptionsWindow():
                 if txt_console.input_mode:
                     if event.key == pygame.K_BACKSPACE:
                         if pygame.key.get_mods() & pygame.KMOD_CTRL:
-                            print('pressed')
                             tmp = txt_console.text.split()
                             if tmp:
                                 tmp.pop()
