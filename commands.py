@@ -135,8 +135,9 @@ class Commands:
 
     def output_stats(params, options):
         filename_to_generate = params[0]
-        if not set(ALLOWED_SYMBOLS).intersection(set(filename_to_generate[38:])):
-            return f'[ERROR] {filename_to_generate} is not a valid name'
+        # TODO: set appropriate name condition (maybe using <import re>)
+        # if not set(ALLOWED_SYMBOLS).intersection(set(filename_to_generate[38:])):
+        #     return f'[ERROR] {filename_to_generate} is not a valid name'
         df = assemble_games_dataframe()
         col = ['number', 'nodes', 'edges', 'bank', 'best_by_player', 'best_by_player_collapsed',
                'solution_by_player', 'best_by_algo', 'solution_by_algo']

@@ -315,10 +315,11 @@ def GameWindow(g, filename=None):
     field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
 
     btn_best = Button(topleft=(30, 390), size=(100, 40),
-                      text='Best', is_active=OPTIONS['show_best_possible'])
-    btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save')
-    btn_back = Button(topleft=(30, 510), size=(100, 40), text='Back')
-    hover = HoverTooltip(objects=[btn_best, btn_save, btn_back])
+                      text='Best', is_active=OPTIONS['show_best_possible'], hover_text='show solution by algo')
+    btn_save = Button(topleft=(30, 450), size=(100, 40), text='Save', hover_text='save this solution')
+    btn_back = Button(topleft=(30, 510), size=(100, 40), text='Back', hover_text='go back (looses progress)')
+    btns = [btn_best, btn_save, btn_back]
+    hover = HoverTooltip(objects=btns)
 
     if filename is None:
         # in case the filename is so far unknown
@@ -341,13 +342,13 @@ def GameWindow(g, filename=None):
     only_once = True
     show_best_moves = False
     moves = []
-    g_not_solved = deepcopy(g)  # what the fuck is a deepcopy????
+    g_not_solved = deepcopy(g)
 
     if OPTIONS['show_best_possible']:
         moves_best, min_num_moves = find_best(g, N=100)
         # output optimal strategy to the console
         print(', '.join(show_instruction(moves_best)))
-        # TODO: threading?
+        # TODO: async?threading
 
     while running_game:
         screen.fill(THEME['background'])
@@ -413,6 +414,8 @@ def GameWindow(g, filename=None):
 
         btn_save.draw(screen, my_font)
         btn_back.draw(screen, my_font)
+        mouse = pygame.mouse.get_pos()
+        hover.display(mouse, screen, my_font_hover)
         display_prev_stats(val, best)
         display_labels(g, sandbox=False, num_moves=len(moves))
         display_nodes_edges(g)
@@ -597,8 +600,9 @@ def MenuWindow():
                       hover_text='open an existing game')
     btn_options = Button((200, D + (h+d)*2), (400, h),
                          'OPTIONS', hover_text='configure soem shit')
-    btn_exit = Button((200, D + (h+d)*3), (400, h), 'EXIT')
-    hover = HoverTooltip(objects=[btn_options, btn_create, btn_open])
+    btn_exit = Button((200, D + (h+d)*3), (400, h), 'EXIT', hover_text='exit the game')
+    btns = [btn_options, btn_create, btn_open, btn_exit]
+    hover = HoverTooltip(objects=btns)
 
     running_menu = True
     while running_menu:
@@ -625,10 +629,8 @@ def MenuWindow():
             elif event.type == pygame.QUIT:
                 running_menu = False
 
-        btn_create.draw(screen, my_font)
-        btn_open.draw(screen, my_font)
-        btn_options.draw(screen, my_font)
-        btn_exit.draw(screen, my_font)
+        for obj in btns:
+            obj.draw(screen, my_font)
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
