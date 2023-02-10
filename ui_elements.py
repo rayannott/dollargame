@@ -1,6 +1,6 @@
 import pygame
 from utils import THEME, PANEL_HEIGHT
-
+import math
 
 
 
@@ -16,18 +16,29 @@ class Button():
         self.hover_text = hover_text
         self.bg_color = bg_color
         self.text_placement_specifier = text_placement_specifier
+        self.time = 0
+        self.pos_wiggle = [0, 0]
+        self.pos_wiggle_magn = min(self.size)*0.05
+    
+    def pos_wiggle_update(self):
+        self.pos_wiggle[0] = self.pos_wiggle_magn*math.sin(self.time)
+        self.pos_wiggle[1] = self.pos_wiggle_magn*math.cos(self.time)
+
 
     def draw(self, screen, font):
         def color_active(col):
             return col if self.is_active else THEME['button_inactive']
         if self.is_visible:
+            self.time += 1./240
             x, y = self.topleft
+            self.pos_wiggle_update()
+            x += self.pos_wiggle[0]
+            y += self.pos_wiggle[1]
             wi, he = self.size
             color = color_active(self.bg_color)
             pygame.draw.rect(screen, THEME['def'], [x, y, wi, he], width=4)
             pygame.draw.rect(screen, color, [x+4, y+4, wi-8, he-8])
             if self.text_placement_specifier == 'text_input':
-
                 position = x + he//4, y + he//4
             else:
                 position = x + wi//8, y + he//4
