@@ -640,6 +640,3 @@ def MenuWindow():
         pygame.draw.rect(screen, THEME['def'], [0, 0, WIDTH, HEIGHT], 4)
         pygame.display.update()
 
-
-if __name__ == '__main__':
-    MenuWindow()
