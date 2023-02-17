@@ -31,8 +31,7 @@ class Button():
         self.color_time = 0
 
         self.pos_wiggle = [0, 0]
-        magnitude_t = random()
-        self.pos_wiggle_magn = min(self.size) * ((1-magnitude_t)*0.03 + magnitude_t*0.055)
+        self.pos_wiggle_magn = min(self.size) * 0.025 # ((1-magnitude_t)*0.02 + magnitude_t*0.05)
         self.rot_direction = (-1) ** (random() > 0.5)
         rot_speed_t = random()
         self.rs = (1-rot_speed_t) * 0.8 + rot_speed_t * 1.2 # rotation speed
