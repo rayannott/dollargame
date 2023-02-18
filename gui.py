@@ -72,10 +72,15 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
                 f'MOVES = {num_moves}', False, THEME['def']), (20, 80 + shift))
 
 
-def display_nodes_edges(G):
+def display_nodes_edges(G, node_to_highlight):
     # nodes
-    for node in G.nodes:
-        pygame.draw.circle(screen, THEME['def'],
+    if node_to_highlight is not None:
+        for node in G.nodes:
+            pygame.draw.circle(screen, THEME['def'] if node != node_to_highlight else '#00ff00',
+                           G.nodes[node]['pos'], 20, 2)
+    else:
+        for node in G.nodes:
+            pygame.draw.circle(screen, THEME['def'],
                            G.nodes[node]['pos'], 20, 2)
     # edges
     for s, f in G.edges:
@@ -185,7 +190,7 @@ def SandboxWindow():
             G.nodes[node_down_shift]['pos'] = pygame.mouse.get_pos()
 
         display_labels(G, sandbox=True)
-        display_nodes_edges(G)
+        display_nodes_edges(G, None)
 
         # aesthetics (when drawing edges)
         if holding_down:
@@ -415,10 +420,11 @@ def GameWindow(g, filename=None):
         btn_save.draw(screen, my_font)
         btn_back.draw(screen, my_font)
         mouse = pygame.mouse.get_pos()
+        _, on_node = mouse_on_node(g, mouse)
         hover.display(mouse, screen, my_font_hover)
         display_prev_stats(val, best)
         display_labels(g, sandbox=False, num_moves=len(moves))
-        display_nodes_edges(g)
+        display_nodes_edges(g, on_node)
 
         if OPTIONS['show_best_possible']:
             btn_best.draw(screen, my_font)
