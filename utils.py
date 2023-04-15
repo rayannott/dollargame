@@ -15,6 +15,7 @@ ALLOWED_SYMBOLS = set('abcdefghijklmnopqrstuvwxyz0123456789 _-.')
 SORTBY_LIST = ['date_created', 'num_of_plays', 'best_score', 'game_number']
 LAYOUT_LIST = ['planar', 'shell']
 THEME_LIST = ['dark', 'light']
+ANIMATION_PATHS_LINGERING_TIME = 1.45 # in animation duration units
 with open('options.json', 'r') as f:
     OPTIONS = json.load(f)
 
