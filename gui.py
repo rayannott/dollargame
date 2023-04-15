@@ -130,7 +130,6 @@ def SandboxWindow():
                     holding_down = True
                     down_bool, node_down = mouse_on_node(G, down)
                 elif event.type == pygame.MOUSEBUTTONUP:
-
                     holding_down = False
                     up = pygame.mouse.get_pos()
                     if not field_rect.collidepoint(up):
@@ -156,6 +155,7 @@ def SandboxWindow():
                                 G = DGGraph()
                                 cnt = count(0)
                         elif event.button in {4, 5}:
+                            play_sfx('scroll_short_click')
                             cnt_nodes.hovering(
                                 up, add=1 if event.button == 4 else -1)
                             cnt_b_minus_g.hovering(
@@ -199,8 +199,8 @@ def SandboxWindow():
         if holding_with_shift and down_bool_shift:
             G.nodes[node_down_shift]['pos'] = pygame.mouse.get_pos()
 
-        display_labels(G, sandbox=True)
         display_nodes_edges(G, None)
+        display_labels(G, sandbox=True)
 
         # aesthetics (when drawing edges)
         if holding_down:
@@ -410,10 +410,12 @@ def GameWindow(g, filename=None):
                                 if down[1] > up[1]:
                                     print(f'Node {node_down} gives')
                                     g.give(node_down)
+                                    play_sfx('scroll_short_click')
                                     moves.append((node_down, 'give'))
                                 else:
                                     print(f'Node {node_down} takes')
                                     g.take(node_down)
+                                    play_sfx('scroll_short_click')
                                     moves.append((node_down, 'take'))
                         is_victory = g.is_victory()
                 else:
@@ -423,12 +425,14 @@ def GameWindow(g, filename=None):
                         if event.button == 4:
                             print(f'Node {node_down} gives')
                             g.give(node_down)
+                            play_sfx('scroll_short_click')
                             if OPTIONS['bezier_animation']:
                                 anim.add_curves(animation.get_curves(g, node_down, give=True))
                             moves.append((node_down, 'give'))
                         elif event.button == 5:
                             print(f'Node {node_down} takes')
                             g.take(node_down)
+                            play_sfx('scroll_short_click')
                             if OPTIONS['bezier_animation']:
                                 anim.add_curves(animation.get_curves(g, node_down, give=False))
                             moves.append((node_down, 'take'))
