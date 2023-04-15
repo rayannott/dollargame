@@ -522,7 +522,6 @@ def OptionsWindow():
     cnt_sfx_volume = Counter(topleft=(10, 410), size=(110, 40), value=sfx_volume, bounds=(0, 100),
                             text='SFX vol', hover_text='sound effects volume')
 
-
     txt_console = TextInput(topleft=(330, 10), size=(460, 40),
                         text='', hover_text=f'this is the command line', text_placement_specifier='input_text')
     objects = [
@@ -598,7 +597,6 @@ def OptionsWindow():
                         up, add=1 if event.button == 4 else -1)
                     bg_music_volume = cnt_bg_music_volume.value
                     bg_music_set_vol(bg_music_volume/100)
-
                     cnt_sfx_volume.hovering(
                         up, add=1 if event.button == 4 else -1)
                     sfx_volume = cnt_sfx_volume.value

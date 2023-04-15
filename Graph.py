@@ -196,9 +196,9 @@ def find_best(G, N=10):
     return best_so_far, min_num_of_moves
 
 
-def show_instruction(moves, take_give_symbols='arrows'):
+def show_instruction(moves, arrows=True):
     tmp = []
-    take_give = ['←', '→'] if take_give_symbols == 'arrows' else [
+    take_give = ['←', '→'] if arrows else [
         ' take', ' give']
     for node, move in moves.items():
         if move > 0:
