@@ -18,6 +18,10 @@ THEME_LIST = ['dark', 'light']
 with open('options.json', 'r') as f:
     OPTIONS = json.load(f)
 
+SFX_DIR = os.path.join('assets', 'sfx')
+MUSIC_DEFAULT_VOLUME = 0.1
+SFX_DEFAULT_VOLUME = 0.4
+
 def load_theme():
     with open('theme.json', 'r') as f:
         THEME_ALL = json.load(f)
