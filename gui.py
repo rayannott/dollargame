@@ -9,7 +9,7 @@ from graph import DGGraph, load_game, generate_game, find_best, show_instruction
 from utils import *
 from commands import Commands
 import animation
-from sfx import play_sfx
+from sfx import bg_music_set_vol, play_bg_music, play_sfx, set_sfx_volume
 
 
 pygame_icon = pygame.image.load(os.path.join('assets','icon.png'))
@@ -491,34 +491,45 @@ def OptionsWindow():
     theme = OPTIONS['theme']
     wiggle = OPTIONS['wiggle']
     bezier_animation = OPTIONS['bezier_animation']
+    bg_music_volume = OPTIONS['bg_music_volume']
+    sfx_volume = OPTIONS['sfx_volume']
     theme_num = THEME_LIST.index(theme)
     cmdline = Commands()
     clock = pygame.time.Clock()
 
     btn_back = Button(topleft=(10, 550), size=(100, 40),
-                        text='back', hover_text='go back to the menu (you did click the save btn, right?)')
+                        text='Back', hover_text='go back to the menu (you did click the save btn, right?)')
     btn_save = Button(topleft=(10, 500), size=(120, 40),
-                        text='save', hover_text='save the changes')
+                        text='Save', hover_text='save the changes')
     btn_show_ind = Button(topleft=(10, 10), size=(120, 40),
-                        text='indices', hover_text='show nodes\' indices')
+                        text='Indices', hover_text='show nodes\' indices')
     btn_show_best_possible = Button(topleft=(10, 60), size=(120, 40),
                         text='Best', hover_text='show least possible number of moves for the current game')
     btn_sort_by = Button(topleft=(10, 110), size=(120, 40),
-                        text='sort by', hover_text='choose how to sort games in the game opening window')
+                        text='Sort by', hover_text='choose how to sort games in the game opening window')
     btn_layout = Button(topleft=(10, 160), size=(120, 40),
-                        text='layout', hover_text='choose a layout for a generated game')
+                        text='Layout', hover_text='choose a layout for a generated game')
     btn_theme = Button(topleft=(10, 210), size=(120, 40),
-                        text='theme', hover_text='change the theme (dark/light) (needs restarting)')
+                        text='Theme', hover_text='change the theme (dark/light) (needs restarting)')
     btn_wiggle = Button(topleft=(10, 260), size=(120, 40),
-                        text='wiggle', hover_text='toggle button wiggle')
+                        text='Wiggle', hover_text='toggle button wiggle')
     btn_bezier_animation = Button(topleft=(10, 310), size=(120, 40),
-                        text='paths', hover_text='toggle animated paths between nodes')
+                        text='Paths', hover_text='toggle animated paths between nodes')
+    cnt_bg_music_volume = Counter(topleft=(10, 360), size=(110, 40), value=bg_music_volume, bounds=(0, 100),
+                            text='Music vol', hover_text='background music volume')
+    btn_next_bg_track = Button(topleft=(200, 360), size=(60, 40),
+                        text='Next', hover_text='switch backgroung music track')
+    cnt_sfx_volume = Counter(topleft=(10, 410), size=(110, 40), value=sfx_volume, bounds=(0, 100),
+                            text='SFX vol', hover_text='sound effects volume')
+
+
     txt_console = TextInput(topleft=(330, 10), size=(460, 40),
                         text='', hover_text=f'this is the command line', text_placement_specifier='input_text')
     objects = [
         btn_back, btn_save, btn_show_ind,
         btn_sort_by, btn_layout, btn_show_best_possible, 
-        txt_console, btn_theme, btn_wiggle, btn_bezier_animation
+        txt_console, btn_theme, btn_wiggle, btn_bezier_animation, 
+        cnt_bg_music_volume, cnt_sfx_volume, btn_next_bg_track
     ]
     hover = HoverTooltip(objects=objects, topleft=(130, 567))
 
@@ -544,6 +555,8 @@ def OptionsWindow():
                         OPTIONS['theme'] = theme
                         OPTIONS['wiggle'] = wiggle
                         OPTIONS['bezier_animation'] = bezier_animation
+                        OPTIONS['bg_music_volume'] = bg_music_volume
+                        OPTIONS['sfx_volume'] = sfx_volume
                         with open(OPTIONS_DIR, 'w') as f:
                             json.dump(OPTIONS, f)
                         cmdline.log('info: saved successfully')
@@ -574,8 +587,22 @@ def OptionsWindow():
                     elif btn_bezier_animation.hovering(up):
                         bezier_animation = not bezier_animation
                         play_sfx('options_switch')
+                    elif btn_next_bg_track.hovering(up):
+                        play_bg_music()
+                        play_sfx('options_switch')
                     elif txt_console.hovering(up):
                         txt_console.input_mode = not txt_console.input_mode
+                elif event.button in {4, 5}:
+                    play_sfx('scroll_short_click')
+                    cnt_bg_music_volume.hovering(
+                        up, add=1 if event.button == 4 else -1)
+                    bg_music_volume = cnt_bg_music_volume.value
+                    bg_music_set_vol(bg_music_volume/100)
+
+                    cnt_sfx_volume.hovering(
+                        up, add=1 if event.button == 4 else -1)
+                    sfx_volume = cnt_sfx_volume.value
+                    set_sfx_volume(sfx_volume/100)
             elif event.type == pygame.KEYDOWN:
                 if txt_console.input_mode:
                     if event.key == pygame.K_BACKSPACE:

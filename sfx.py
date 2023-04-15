@@ -1,7 +1,9 @@
-from utils import MUSIC_DEFAULT_VOLUME, SFX_DEFAULT_VOLUME, SFX_DIR
-from pygame import mixer
 import os
 import random
+
+from pygame import mixer
+
+from utils import SFX_DIR, OPTIONS
 
 mixer.init()
 
@@ -18,7 +20,7 @@ def set_sfx_volume(vol):
         s_effect.set_volume(vol)
 
 
-set_sfx_volume(SFX_DEFAULT_VOLUME)
+set_sfx_volume(OPTIONS['sfx_volume']/100)
 
 
 def play_sfx(name):
@@ -28,7 +30,7 @@ def play_sfx(name):
 def play_bg_music():
     bg_track = random.choice(bg_music_tracks)
     mixer.music.load(bg_track)
-    bg_music_set_vol(MUSIC_DEFAULT_VOLUME)
+    bg_music_set_vol(OPTIONS['bg_music_volume']/100)
     mixer.music.play(-1)
 
 

@@ -23,10 +23,7 @@ OPTIONS_DIR = os.path.join('assets', 'options.json')
 with open(OPTIONS_DIR, 'r') as f:
     OPTIONS = json.load(f)
 
-# TODO: volume master
 SFX_DIR = os.path.join('assets', 'sfx')
-MUSIC_DEFAULT_VOLUME = 0.1
-SFX_DEFAULT_VOLUME = 0.4
 
 def load_theme():
     with open(THEME_DIR, 'r') as f:

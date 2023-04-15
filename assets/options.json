@@ -1,1 +1,1 @@
-{"show_node_ids": true, "sort_by": "date_created", "layout": "shell", "show_best_possible": true, "theme": "dark", "wiggle": true, "bezier_animation": true}
+{"show_node_ids": true, "sort_by": "date_created", "layout": "shell", "show_best_possible": true, "theme": "dark", "wiggle": true, "bezier_animation": true, "bg_music_volume": 6, "sfx_volume": 40}
