@@ -1,9 +1,11 @@
-import networkx as nx
+import os
 import json
-import numpy as np
 from datetime import datetime
 from copy import deepcopy
 from random import choice
+
+import numpy as np
+import networkx as nx
 
 
 class DGGraph(nx.Graph):
@@ -85,7 +87,7 @@ class DGGraph(nx.Graph):
 # utils
 
 def load_game(filename):
-    with open('games/'+filename, 'r') as fr:
+    with open(os.path.join('games', filename), 'r') as fr:
         dat = json.load(fr)
     G = DGGraph(info=dat['info'])
     for n, v in dat['graph']['values'].items():
