@@ -364,14 +364,11 @@ def GameWindow(g, filename=None):
     show_best_moves = False
     moves = []
     g_not_solved = deepcopy(g)
+    once = True
 
     anim = animation.Animation()
+    moves_best = None
 
-    if OPTIONS['show_best_possible']:
-        moves_best, min_num_moves = find_best(g, N=100)
-        # output optimal strategy to the console
-        print(', '.join(show_instruction(moves_best)))
-        # TODO: async?threading
 
     while running_game:
         screen.fill(THEME['background'])
@@ -458,7 +455,7 @@ def GameWindow(g, filename=None):
         anim.draw(screen)
         anim.tick(dt)
 
-        if OPTIONS['show_best_possible']:
+        if moves_best is not None and OPTIONS['show_best_possible']:
             btn_best.draw(screen, my_font)
             screen.blit(my_font.render(
                 f'best possible', False, YELLOW), (20, 157))
@@ -477,7 +474,12 @@ def GameWindow(g, filename=None):
         pygame.draw.rect(screen, THEME['field_outline'], [
                          WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
-        
+
+        if once and OPTIONS['show_best_possible']:
+                moves_best, min_num_moves = find_best(g, N=100)
+                # output optimal strategy to the console
+                print(', '.join(show_instruction(moves_best)))
+                once = False
 
 
 def OptionsWindow():
