@@ -365,6 +365,7 @@ def GameWindow(g, filename=None):
 
     while running_game:
         screen.fill(THEME['background'])
+        dt = clock.tick(FRAMERATE)
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 down = pygame.mouse.get_pos()
@@ -437,7 +438,7 @@ def GameWindow(g, filename=None):
         display_labels(g, sandbox=False, num_moves=len(moves))
         display_nodes_edges(g, on_node)
         anim.draw(screen)
-        anim.tick()
+        anim.tick(dt)
 
         if OPTIONS['show_best_possible']:
             btn_best.draw(screen, my_font)
@@ -458,7 +459,7 @@ def GameWindow(g, filename=None):
         pygame.draw.rect(screen, THEME['field_outline'], [
                          WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
-        dt = clock.tick(FRAMERATE)
+        
 
 
 def OptionsWindow():
@@ -477,28 +478,30 @@ def OptionsWindow():
     clock = pygame.time.Clock()
 
     btn_back = Button(topleft=(10, 550), size=(100, 40),
-                      text='back', hover_text='go back to the menu (you did click the save btn, right?)')
+                        text='back', hover_text='go back to the menu (you did click the save btn, right?)')
     btn_save = Button(topleft=(10, 500), size=(120, 40),
-                      text='save', hover_text='save the changes')
+                        text='save', hover_text='save the changes')
     btn_show_ind = Button(topleft=(10, 10), size=(120, 40),
-                          text='indices', hover_text='show nodes\' indices')
+                        text='indices', hover_text='show nodes\' indices')
     btn_show_best_possible = Button(topleft=(10, 60), size=(120, 40),
-                                    text='Best', hover_text='show least possible number of moves for the current game')
+                        text='Best', hover_text='show least possible number of moves for the current game')
     btn_sort_by = Button(topleft=(10, 110), size=(120, 40),
-                         text='sort by', hover_text='choose how to sort games in the game opening window')
+                        text='sort by', hover_text='choose how to sort games in the game opening window')
     btn_layout = Button(topleft=(10, 160), size=(120, 40),
                         text='layout', hover_text='choose a layout for a generated game')
     btn_theme = Button(topleft=(10, 210), size=(120, 40),
-                       text='theme', hover_text='change the theme (dark/light) (needs restarting)')
+                        text='theme', hover_text='change the theme (dark/light) (needs restarting)')
     btn_wiggle = Button(topleft=(10, 260), size=(120, 40),
-                       text='wiggle', hover_text='toggle button wiggle')
+                        text='wiggle', hover_text='toggle button wiggle')
     btn_bezier_animation = Button(topleft=(10, 310), size=(120, 40),
-                       text='paths', hover_text='toggle animated paths between nodes')
+                        text='paths', hover_text='toggle animated paths between nodes')
     txt_console = TextInput(topleft=(330, 10), size=(460, 40),
-                            text='', hover_text=f'this is the command line', text_placement_specifier='input_text')
-    objects = [btn_back, btn_save, btn_show_ind,
-                                  btn_sort_by, btn_layout, btn_show_best_possible, 
-                                  txt_console, btn_theme, btn_wiggle, btn_bezier_animation]
+                        text='', hover_text=f'this is the command line', text_placement_specifier='input_text')
+    objects = [
+        btn_back, btn_save, btn_show_ind,
+        btn_sort_by, btn_layout, btn_show_best_possible, 
+        txt_console, btn_theme, btn_wiggle, btn_bezier_animation
+    ]
     hover = HoverTooltip(objects=objects, topleft=(130, 567))
 
     running_options = True
