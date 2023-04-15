@@ -435,8 +435,8 @@ def GameWindow(g, filename=None):
         _, on_node = mouse_on_node(g, mouse)
         hover.display(mouse, screen, my_font_hover)
         display_prev_stats(val, best)
-        display_labels(g, sandbox=False, num_moves=len(moves))
         display_nodes_edges(g, on_node)
+        display_labels(g, sandbox=False, num_moves=len(moves))
         anim.draw(screen)
         anim.tick(dt)
 
