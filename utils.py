@@ -6,6 +6,7 @@ from random import choice
 from math import sqrt
 from graph import load_game
 
+FRAMERATE = 60
 PANEL_HEIGHT = 50
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])
          for ind in range(9)]
@@ -209,3 +210,30 @@ def far_enough_from_nodes(G, release_pos):
         if dist(release_pos, G.nodes[node]['pos']) < 80:
             return False
     return True
+
+class Vec2:
+    def __init__(self, x: float, y: float) -> None:
+        self.x = x
+        self.y = y
+    def __repr__(self) -> str:
+        return f'Vec2({self.x:.3f}, {self.y:.3f})'
+    def astuple(self):
+        return (self.x, self.y)
+    def __str__(self) -> str:
+        return f'[{self.x:.3f} {self.y:.3f}]'
+    def __add__(self, other: "Vec2") -> "Vec2":
+        return Vec2(self.x + other.x, self.y + other.y)
+    def __sub__(self, other: "Vec2") -> "Vec2":
+        return Vec2(self.x - other.x, self.y - other.y)
+    def __mul__(self, other: float) -> "Vec2":
+        return Vec2(self.x * other, self.y * other)
+    def __truediv__(self, other: float) -> "Vec2":
+        return Vec2(self.x / other, self.y / other)
+    def __eq__(self, other) -> bool:
+        diff = self - other
+        return abs(diff.x) < 1e-5 and abs(diff.y) < 1e-5
+    def __abs__(self) -> float:
+        return sqrt(self.x**2 + self.y**2)
+
+def linspace(a: float, b: float, N: int) -> list[float]:
+    return [a + i*(b-a)/(N-1) for i in range(N)]

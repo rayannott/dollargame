@@ -1,12 +1,14 @@
 import json
-import pygame
 from copy import deepcopy
 from itertools import count
+
+import pygame
 
 from ui_elements import Button, HoverTooltip, Panel, Counter, TextInput
 from graph import DGGraph, load_game, generate_game, find_best, show_instruction
 from utils import *
 from commands import Commands
+import animation
 
 
 pygame_icon = pygame.image.load('icon.png')
@@ -115,6 +117,7 @@ def SandboxWindow():
                          hover_text='go back (loses progress)')
     hover = HoverTooltip(objects=[
                          btn_proceed, btn_discard, btn_generate, cnt_b_minus_g, cnt_nodes, btn_clear])
+    clock = pygame.time.Clock()
 
     # Game creation loop
     while running:
@@ -225,6 +228,7 @@ def SandboxWindow():
         pygame.draw.rect(screen, THEME['field_outline'], [
             WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
+        clock.tick(FRAMERATE)
 
 
 def OpenGameWindow():
@@ -238,6 +242,7 @@ def OpenGameWindow():
     update = True
     hover = HoverTooltip(
         objects=[btn_back, btn_randomgame], topleft=(240, 570))
+    clock = pygame.time.Clock()
 
     running_opengame = True
     while running_opengame:
@@ -312,10 +317,10 @@ def OpenGameWindow():
 
         pygame.draw.rect(screen, THEME['def'], [10, 10, 780, 530], 4)
         pygame.display.update()
+        clock.tick(FRAMERATE)
 
 
 def GameWindow(g, filename=None):
-    # TODO: display best possible score (optional)
     pygame.display.set_caption('Game')
     field_rect = pygame.Rect((WIDTH*0.2, 4), (WIDTH*0.8-4, HEIGHT-8))
 
@@ -325,6 +330,7 @@ def GameWindow(g, filename=None):
     btn_back = Button(topleft=(30, 510), size=(100, 40), text='Back', hover_text='go back (looses progress)')
     btns = [btn_best, btn_save, btn_back]
     hover = HoverTooltip(objects=btns)
+    clock = pygame.time.Clock()
 
     if filename is None:
         # in case the filename is so far unknown
@@ -348,6 +354,8 @@ def GameWindow(g, filename=None):
     show_best_moves = False
     moves = []
     g_not_solved = deepcopy(g)
+
+    anim = animation.Animation()
 
     if OPTIONS['show_best_possible']:
         moves_best, min_num_moves = find_best(g, N=100)
@@ -394,7 +402,6 @@ def GameWindow(g, filename=None):
                                     g.take(node_down)
                                     moves.append((node_down, 'take'))
                         is_victory = g.is_victory()
-                        # --------------------
                 else:
                     down_bool, node_down = mouse_on_node(g, down)
                     up_bool, _ = mouse_on_node(g, up)
@@ -402,10 +409,14 @@ def GameWindow(g, filename=None):
                         if event.button == 4:
                             print(f'Node {node_down} gives')
                             g.give(node_down)
+                            if OPTIONS['bezier_animation']:
+                                anim.add_curves(animation.get_curves(g, node_down, give=True))
                             moves.append((node_down, 'give'))
                         elif event.button == 5:
                             print(f'Node {node_down} takes')
                             g.take(node_down)
+                            if OPTIONS['bezier_animation']:
+                                anim.add_curves(animation.get_curves(g, node_down, give=False))
                             moves.append((node_down, 'take'))
                     is_victory = g.is_victory()
 
@@ -425,6 +436,8 @@ def GameWindow(g, filename=None):
         display_prev_stats(val, best)
         display_labels(g, sandbox=False, num_moves=len(moves))
         display_nodes_edges(g, on_node)
+        anim.draw(screen)
+        anim.tick()
 
         if OPTIONS['show_best_possible']:
             btn_best.draw(screen, my_font)
@@ -445,6 +458,7 @@ def GameWindow(g, filename=None):
         pygame.draw.rect(screen, THEME['field_outline'], [
                          WIDTH*0.2, 4, WIDTH*0.8-4, HEIGHT-8], 2)
         pygame.display.update()
+        dt = clock.tick(FRAMERATE)
 
 
 def OptionsWindow():
@@ -456,8 +470,11 @@ def OptionsWindow():
     layout = OPTIONS['layout']
     layout_num = LAYOUT_LIST.index(layout)
     theme = OPTIONS['theme']
+    wiggle = OPTIONS['wiggle']
+    bezier_animation = OPTIONS['bezier_animation']
     theme_num = THEME_LIST.index(theme)
     cmdline = Commands()
+    clock = pygame.time.Clock()
 
     btn_back = Button(topleft=(10, 550), size=(100, 40),
                       text='back', hover_text='go back to the menu (you did click the save btn, right?)')
@@ -473,11 +490,16 @@ def OptionsWindow():
                         text='layout', hover_text='choose a layout for a generated game')
     btn_theme = Button(topleft=(10, 210), size=(120, 40),
                        text='theme', hover_text='change the theme (dark/light) (needs restarting)')
+    btn_wiggle = Button(topleft=(10, 260), size=(120, 40),
+                       text='wiggle', hover_text='toggle button wiggle')
+    btn_bezier_animation = Button(topleft=(10, 310), size=(120, 40),
+                       text='paths', hover_text='toggle animated paths between nodes')
     txt_console = TextInput(topleft=(330, 10), size=(460, 40),
                             text='', hover_text=f'this is the command line', text_placement_specifier='input_text')
-
-    hover = HoverTooltip(objects=[btn_back, btn_save, btn_show_ind,
-                                  btn_sort_by, btn_layout, btn_show_best_possible, txt_console, btn_theme], topleft=(130, 567))
+    objects = [btn_back, btn_save, btn_show_ind,
+                                  btn_sort_by, btn_layout, btn_show_best_possible, 
+                                  txt_console, btn_theme, btn_wiggle, btn_bezier_animation]
+    hover = HoverTooltip(objects=objects, topleft=(130, 567))
 
     running_options = True
     while running_options:
@@ -498,6 +520,8 @@ def OptionsWindow():
                         OPTIONS['layout'] = layout
                         OPTIONS['show_best_possible'] = show_best_possible
                         OPTIONS['theme'] = theme
+                        OPTIONS['wiggle'] = wiggle
+                        OPTIONS['bezier_animation'] = bezier_animation
                         with open('options.json', 'w') as f:
                             json.dump(OPTIONS, f)
                         cmdline.log('info: saved successfully')
@@ -516,7 +540,10 @@ def OptionsWindow():
                         theme = THEME_LIST[theme_num % len(THEME_LIST)]
                         cmdline.log(
                             f'info: save and then restart the game to & update the theme to [{theme}]')
-
+                    elif btn_wiggle.hovering(up):
+                        wiggle = not wiggle
+                    elif btn_bezier_animation.hovering(up):
+                        bezier_animation = not bezier_animation
                     elif txt_console.hovering(up):
                         txt_console.input_mode = not txt_console.input_mode
             elif event.type == pygame.KEYDOWN:
@@ -560,14 +587,8 @@ def OptionsWindow():
             elif event.type == pygame.QUIT:
                 running_options = False
 
-        btn_back.draw(screen, my_font)
-        btn_save.draw(screen, my_font)
-        btn_show_ind.draw(screen, my_font)
-        btn_show_best_possible.draw(screen, my_font)
-        btn_sort_by.draw(screen, my_font)
-        btn_layout.draw(screen, my_font)
-        btn_theme.draw(screen, my_font)
-        txt_console.draw(screen, my_font)
+        for obj in objects:
+            obj.draw(screen, my_font)
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
@@ -585,6 +606,10 @@ def OptionsWindow():
                     (x + btn_show_ind.size[0] + 5, y + 160))
         screen.blit(my_font.render(theme, False, THEME['def']),
                     (x + btn_show_ind.size[0] + 5, y + 210))
+        screen.blit(my_font.render(str(wiggle), False, GREEN if wiggle else RED),
+                    (x + btn_show_ind.size[0] + 5, y + 260))
+        screen.blit(my_font.render(str(bezier_animation), False, GREEN if bezier_animation else RED),
+                    (x + btn_show_ind.size[0] + 5, y + 310))
 
         # light yellow outline
         pygame.draw.rect(screen, THEME['options_outline'], [
@@ -595,6 +620,7 @@ def OptionsWindow():
             screen.blit(my_font.render(log, False, THEME['def']),
                         (337, 65 + i*23))
         pygame.display.update()
+        clock.tick(FRAMERATE)
 
 
 def MenuWindow():
@@ -609,6 +635,7 @@ def MenuWindow():
     btn_exit = Button((200, D + (h+d)*3), (400, h), 'EXIT', hover_text='exit the game')
     btns = [btn_options, btn_create, btn_open, btn_exit]
     hover = HoverTooltip(objects=btns)
+    clock = pygame.time.Clock()
 
     running_menu = True
     while running_menu:
@@ -645,4 +672,4 @@ def MenuWindow():
         # white outline
         pygame.draw.rect(screen, THEME['def'], [0, 0, WIDTH, HEIGHT], 4)
         pygame.display.update()
-
+        clock.tick(FRAMERATE)

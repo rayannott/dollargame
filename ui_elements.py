@@ -1,5 +1,5 @@
 import pygame
-from utils import THEME, PANEL_HEIGHT
+from utils import THEME, PANEL_HEIGHT, FRAMERATE, OPTIONS
 import math
 from random import random, randint
 
@@ -18,6 +18,7 @@ class Button():
     def __init__(self, topleft, size, text, is_active=True, is_visible=True,
                  bg_color=THEME['button_default'], hover_text='this is helpful',  text_placement_specifier='default'):
         self.topleft = topleft
+        self.DEFAULT_DT = 5./FRAMERATE if OPTIONS['wiggle'] else 0
         self.size = size
         self.is_active = is_active
         self.text = text
@@ -27,11 +28,11 @@ class Button():
         self.bg_color = bg_color
         self.text_placement_specifier = text_placement_specifier
         self.time = 0
-        self.dt = 1./240
+        self.dt = self.DEFAULT_DT
         self.color_time = 0
 
         self.pos_wiggle = [0, 0]
-        self.pos_wiggle_magn = min(self.size) * 0.025 # ((1-magnitude_t)*0.02 + magnitude_t*0.05)
+        self.pos_wiggle_magn = min(self.size) * 0.03 # ((1-magnitude_t)*0.02 + magnitude_t*0.05)
         self.rot_direction = (-1) ** (random() > 0.5)
         rot_speed_t = random()
         self.rs = (1-rot_speed_t) * 0.8 + rot_speed_t * 1.2 # rotation speed
@@ -71,8 +72,7 @@ class Button():
         rgb_col[1] = int(math.cos(self.color_time*3)**2 * 180)
         rgb_col[2] = int(math.cos(self.color_time*2)**2 * 210)
         self.col = rgb_to_hex(rgb_col)
-        # print(self.col)
-        self.color_time += 5e-4
+        self.color_time += 1./FRAMERATE
         
 
     def hovering(self, pos):
@@ -81,8 +81,7 @@ class Button():
             self.dt = 0
             self.cycle_color()
         else:
-            self.dt = 1./240
-            # self.col = THEME['def']
+            self.dt = self.DEFAULT_DT
         return res
 
 
