@@ -516,11 +516,11 @@ def OptionsWindow():
     btn_bezier_animation = Button(topleft=(10, 310), size=(120, 40),
                         text='Paths', hover_text='toggle animated paths between nodes')
     cnt_bg_music_volume = Counter(topleft=(10, 360), size=(110, 40), value=bg_music_volume, bounds=(0, 100),
-                            text='Music vol', hover_text='background music volume')
+                            text='Music', hover_text='background music volume')
     btn_next_bg_track = Button(topleft=(200, 360), size=(60, 40),
                         text='Next', hover_text='switch backgroung music track')
     cnt_sfx_volume = Counter(topleft=(10, 410), size=(110, 40), value=sfx_volume, bounds=(0, 100),
-                            text='SFX vol', hover_text='sound effects volume')
+                            text='SFX', hover_text='sound effects volume')
 
     txt_console = TextInput(topleft=(330, 10), size=(460, 40),
                         text='', hover_text=f'this is the command line', text_placement_specifier='input_text')
@@ -592,15 +592,13 @@ def OptionsWindow():
                     elif txt_console.hovering(up):
                         txt_console.input_mode = not txt_console.input_mode
                 elif event.button in {4, 5}:
-                    play_sfx('scroll_short_click')
-                    cnt_bg_music_volume.hovering(
-                        up, add=1 if event.button == 4 else -1)
-                    bg_music_volume = cnt_bg_music_volume.value
-                    bg_music_set_vol(bg_music_volume/100)
-                    cnt_sfx_volume.hovering(
-                        up, add=1 if event.button == 4 else -1)
-                    sfx_volume = cnt_sfx_volume.value
-                    set_sfx_volume(sfx_volume/100)
+                    if cnt_bg_music_volume.hovering(up, add=1 if event.button == 4 else -1) or \
+                    cnt_sfx_volume.hovering(up, add=1 if event.button == 4 else -1):
+                        play_sfx('scroll_short_click')
+                        bg_music_volume = cnt_bg_music_volume.value
+                        bg_music_set_vol(bg_music_volume/100)
+                        sfx_volume = cnt_sfx_volume.value
+                        set_sfx_volume(sfx_volume/100)
             elif event.type == pygame.KEYDOWN:
                 if txt_console.input_mode:
                     if event.key == pygame.K_BACKSPACE:
