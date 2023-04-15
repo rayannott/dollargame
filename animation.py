@@ -3,13 +3,17 @@ import math
 
 import pygame
 
-from utils import Vec2, linspace
+from utils import ANIMATION_PATHS_LINGERING_TIME, Vec2, linspace
 from graph import DGGraph
 
 
 def get_random_color():
     r = lambda: random.randint(10, 255)
-    return '#%02X%02X%02X' % (r(),r(),r())
+    return (r(),r(),r())
+
+def fade_color(color: tuple[int, int, int]):
+    K = 0.95
+    return int(color[0] * K), int(color[1] * K), int(color[2] * K)
 
 class Bezier:
     '''
@@ -73,18 +77,18 @@ class Animation:
             )
     
     def tick(self, dt):
-        for process in self.processes:
-            if process[0] < self.CURVE_RESOLUTION:
-                process[0] += 2
+        for i, process in enumerate(self.processes):
+            process[0] += 2
+            if self.CURVE_RESOLUTION < process[0] <= self.CURVE_RESOLUTION * ANIMATION_PATHS_LINGERING_TIME:
+                self.processes[i][2] = fade_color(self.processes[i][2])
+
         
     def draw(self, surface):
         for t, curve, color in self.processes:
-            if t < self.CURVE_RESOLUTION:
-                for t_ in range(t):
+            if t <= self.CURVE_RESOLUTION * ANIMATION_PATHS_LINGERING_TIME:
+                for t_ in range(min(t, self.CURVE_RESOLUTION)):
                     pygame.draw.circle(surface, color, curve(self.linear_t[t_]).astuple(), 1)
-
-    
-    
+                        
 
 def main():
     import pygame
