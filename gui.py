@@ -9,6 +9,7 @@ from graph import DGGraph, load_game, generate_game, find_best, show_instruction
 from utils import *
 from commands import Commands
 import animation
+from sfx import play_sfx
 
 
 pygame_icon = pygame.image.load('icon.png')
@@ -135,10 +136,12 @@ def SandboxWindow():
                     if not field_rect.collidepoint(up):
                         if event.button == 1:
                             if btn_proceed.hovering(up):
+                                play_sfx('click')
                                 GameWindow(G)
                                 # pygame.display.set_caption('Game creation')
                                 running = False
                             elif btn_generate.hovering(up):
+                                play_sfx('click')
                                 print('Game was generated')
                                 G = generate_game(number_of_nodes=cnt_nodes.value,
                                                   bank_minus_genus=cnt_b_minus_g.value,
@@ -146,8 +149,10 @@ def SandboxWindow():
                                 cnt = count(G.number_of_nodes())
                                 btn_proceed.is_active = True
                             elif btn_discard.hovering(up):
+                                play_sfx('click')
                                 running = False
                             elif btn_clear.hovering(up):
+                                play_sfx('click')
                                 G = DGGraph()
                                 cnt = count(0)
                         elif event.button in {4, 5}:
@@ -161,9 +166,11 @@ def SandboxWindow():
                         if event.button == 4:  # mousewheel up
                             if down_bool:
                                 increase_value(G, node_down)
+                                play_sfx('scroll_short_click')
                         elif event.button == 5:  # mousewheel down
                             if down_bool:
                                 decrease_value(G, node_down)
+                                play_sfx('scroll_short_click')
                         elif down_bool:
                             if up_bool:
                                 if node_down == node_up:
@@ -256,8 +263,10 @@ def OpenGameWindow():
                     scroll_down_pressed = btn_shiftdown.hovering(up)
                     scroll_up_pressed = btn_shiftup.hovering(up)
                     if btn_back.hovering(up):
+                        play_sfx('click')
                         running_opengame = False
                     elif btn_randomgame.hovering(up):
+                        play_sfx('click')
                         print('Starting a random game')
                         g, filename = get_random_game()
                         if g is not None:
@@ -278,6 +287,7 @@ def OpenGameWindow():
                             GameWindow(g, filename)
                             update = True
                 elif event.button in {4, 5}:  # mousewheel
+                    play_sfx('scroll_short_click')
                     wheel_up = event.button == 4
                     start, finish = shift_panels(
                         start, finish, shift=(1 if wheel_up else -1), number_of_panels=len(panels))
@@ -374,6 +384,7 @@ def GameWindow(g, filename=None):
                 if event.button == 1:
                     if not field_rect.collidepoint(up):
                         if btn_save.hovering(up):
+                            play_sfx('click')
                             if is_victory:
                                 filename = save_finished_game(
                                     g_not_solved, moves, filename)
@@ -384,9 +395,11 @@ def GameWindow(g, filename=None):
                                 btn_save.is_active = False
                             val = int(filename[:-5])
                         elif btn_back.hovering(up):
+                            play_sfx('click')
                             running_game = False
                             break
                         elif btn_best.hovering(up):
+                            play_sfx('click')
                             show_best_moves = not show_best_moves
                     elif not is_victory:
                         # this code makes old controls possible
@@ -426,6 +439,7 @@ def GameWindow(g, filename=None):
 
         if is_victory and only_once:
             print('You won!')
+            play_sfx('victory')
             btn_save.is_active = True
             only_once = False
 
@@ -515,6 +529,7 @@ def OptionsWindow():
                 up = pygame.mouse.get_pos()
                 if event.button == 1:
                     if btn_back.hovering(up):
+                        play_sfx('click')
                         running_options = False
                     elif btn_save.hovering(up):
                         print('Settings saved')
@@ -528,25 +543,33 @@ def OptionsWindow():
                         with open('options.json', 'w') as f:
                             json.dump(OPTIONS, f)
                         cmdline.log('info: saved successfully')
+                        play_sfx('options_switch')
                     elif btn_show_ind.hovering(up):
                         show_indices = not show_indices
+                        play_sfx('options_switch')
                     elif btn_show_best_possible.hovering(up):
                         show_best_possible = not show_best_possible
+                        play_sfx('options_switch')
                     elif btn_sort_by.hovering(up):
                         sort_by_num += 1
                         sort_by = SORTBY_LIST[sort_by_num % len(SORTBY_LIST)]
+                        play_sfx('options_switch')
                     elif btn_layout.hovering(up):
                         layout_num += 1
                         layout = LAYOUT_LIST[layout_num % len(LAYOUT_LIST)]
+                        play_sfx('options_switch')
                     elif btn_theme.hovering(up):
                         theme_num += 1
                         theme = THEME_LIST[theme_num % len(THEME_LIST)]
                         cmdline.log(
                             f'info: save and then restart the game to & update the theme to [{theme}]')
+                        play_sfx('options_switch')
                     elif btn_wiggle.hovering(up):
                         wiggle = not wiggle
+                        play_sfx('options_switch')
                     elif btn_bezier_animation.hovering(up):
                         bezier_animation = not bezier_animation
+                        play_sfx('options_switch')
                     elif txt_console.hovering(up):
                         txt_console.input_mode = not txt_console.input_mode
             elif event.type == pygame.KEYDOWN:
@@ -650,16 +673,20 @@ def MenuWindow():
                 up = pygame.mouse.get_pos()
                 if event.button == 1:
                     if btn_options.hovering(up):
+                        play_sfx('click')
                         print('Options')
                         OptionsWindow()
                         pygame.display.set_caption('Menu')
                     elif btn_exit.hovering(up):
+                        play_sfx('click')
                         running_menu = False
                         # pygame.quit()
                     elif btn_create.hovering(up):
+                        play_sfx('click')
                         SandboxWindow()
                         pygame.display.set_caption('Menu')
                     elif btn_open.hovering(up):
+                        play_sfx('click')
                         OpenGameWindow()
                         pygame.display.set_caption('Menu')
             elif event.type == pygame.QUIT:
