@@ -16,15 +16,20 @@ SORTBY_LIST = ['date_created', 'num_of_plays', 'best_score', 'game_number']
 LAYOUT_LIST = ['planar', 'shell']
 THEME_LIST = ['dark', 'light']
 ANIMATION_PATHS_LINGERING_TIME = 1.45 # in animation duration units
-with open('options.json', 'r') as f:
+FONT_DIR = os.path.join('assets', 'UASQUARE.ttf')
+THEME_DIR = os.path.join('assets', 'theme.json')
+OPTIONS_DIR = os.path.join('assets', 'options.json')
+
+with open(OPTIONS_DIR, 'r') as f:
     OPTIONS = json.load(f)
 
+# TODO: volume master
 SFX_DIR = os.path.join('assets', 'sfx')
 MUSIC_DEFAULT_VOLUME = 0.1
 SFX_DEFAULT_VOLUME = 0.4
 
 def load_theme():
-    with open('theme.json', 'r') as f:
+    with open(THEME_DIR, 'r') as f:
         THEME_ALL = json.load(f)
     THEME = THEME_ALL[OPTIONS['theme']]
     return THEME

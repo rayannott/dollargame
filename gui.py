@@ -12,14 +12,14 @@ import animation
 from sfx import play_sfx
 
 
-pygame_icon = pygame.image.load('icon.png')
+pygame_icon = pygame.image.load(os.path.join('assets','icon.png'))
 pygame.display.set_icon(pygame_icon)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.font.init()
 default_font = pygame.font.SysFont('cambria', 20)
-my_font = pygame.font.SysFont('UASQUARE.ttf', 30)
-my_font_bigger = pygame.font.SysFont('UASQUARE.ttf', 36)
-my_font_hover = pygame.font.SysFont('UASQUARE.ttf', 26)
+my_font = pygame.font.SysFont(FONT_DIR, 30)
+my_font_bigger = pygame.font.SysFont(FONT_DIR, 36)
+my_font_hover = pygame.font.SysFont(FONT_DIR, 26)
 
 
 # -----------display functions----------------
@@ -544,7 +544,7 @@ def OptionsWindow():
                         OPTIONS['theme'] = theme
                         OPTIONS['wiggle'] = wiggle
                         OPTIONS['bezier_animation'] = bezier_animation
-                        with open('options.json', 'w') as f:
+                        with open(OPTIONS_DIR, 'w') as f:
                             json.dump(OPTIONS, f)
                         cmdline.log('info: saved successfully')
                         play_sfx('options_switch')
