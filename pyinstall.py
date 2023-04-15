@@ -4,5 +4,5 @@ PyInstaller.__main__.run([
     'main.py',
     '-i', 'icon.ico',
     '--onefile',
-    '--add-data=theme.json;.'
+    '--add-data=assets\\theme.json;.'
 ])

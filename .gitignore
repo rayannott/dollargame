@@ -2,8 +2,8 @@ venv/
 __pycache__/
 .vscode/
 .ipynb_checkpoints/
-Dollar game.exe
-DollarGame.bat
 others/
-Gui.exe
 desktop.ini
+main.spec
+build/
+dist/
