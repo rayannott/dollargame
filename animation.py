@@ -60,9 +60,10 @@ def get_curves(g: DGGraph, node_index: int, give: bool) -> list[Bezier]:
 
 class Animation:
     def __init__(self) -> None:
-        self.CURVE_RESOLUTION = 100
+        self.CURVE_RESOLUTION = 120
         self.linear_t = linspace(0, 1, self.CURVE_RESOLUTION)
         self.processes = []
+        self.accumulated_time = 0
     
     def add_curves(self, curves: list[Bezier]):
         color = get_random_color()
@@ -71,10 +72,10 @@ class Animation:
                 [0, curve, color]
             )
     
-    def tick(self):
+    def tick(self, dt):
         for process in self.processes:
             if process[0] < self.CURVE_RESOLUTION:
-                process[0] += 1
+                process[0] += 2
         
     def draw(self, surface):
         for t, curve, color in self.processes:
