@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 from random import choice
 from math import sqrt
-from Graph import load_game
+from graph import load_game
 
 PANEL_HEIGHT = 50
 RECTS = [pygame.Rect([15, PANEL_HEIGHT + ind*(PANEL_HEIGHT + 4), 770, PANEL_HEIGHT])

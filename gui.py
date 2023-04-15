@@ -4,7 +4,7 @@ from copy import deepcopy
 from itertools import count
 
 from ui_elements import Button, HoverTooltip, Panel, Counter, TextInput
-from Graph import DGGraph, load_game, generate_game, find_best, show_instruction
+from graph import DGGraph, load_game, generate_game, find_best, show_instruction
 from utils import *
 from commands import Commands
 

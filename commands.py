@@ -2,7 +2,7 @@ import os
 import json
 from datetime import datetime
 from pprint import pprint
-from Graph import collapse_moves, load_game, show_instruction, find_best
+from graph import collapse_moves, load_game, show_instruction, find_best
 from utils import ALLOWED_SYMBOLS, assemble_games_dataframe, best_solution_by_player
 
 
