@@ -1,9 +1,12 @@
-import pygame
 import os
 import json
 from datetime import datetime
 from random import choice
 from math import sqrt
+
+import numpy as np
+import pygame
+
 from graph import load_game
 
 FRAMERATE = 60
@@ -20,6 +23,7 @@ FONT_DIR = os.path.join('assets', 'UASQUARE.ttf')
 THEME_DIR = os.path.join('assets', 'theme.json')
 OPTIONS_DIR = os.path.join('assets', 'options.json')
 GAMES_DIR = 'games'
+UPSCALE_POS_PREVIEW = np.array([140, 140], dtype=float)
 
 with open(OPTIONS_DIR, 'r') as f:
     OPTIONS = json.load(f)
@@ -58,6 +62,7 @@ PYGAME_KEYS = {
     pygame.K_KP9: 9,
 }
 
+
 def get_list_of_game_files():
     if not os.path.isdir(GAMES_DIR):
         os.mkdir(GAMES_DIR)
@@ -81,11 +86,26 @@ def get_next_game_number():
         return 0
 
 
+def pull_transform_positions_edges_from_gamefile(filename):
+    with open(os.path.join(GAMES_DIR, filename)) as f:
+        data = json.load(f)
+    positions_raw = data['graph']['positions']
+    pos = np.array(list(positions_raw.values()), dtype=float)
+    pos -= np.min(pos, axis=0)
+    pos /= np.max(pos, axis=0)
+    print(pos)
+    pos *= UPSCALE_POS_PREVIEW
+    # pos *= np.tile(UPSCALE_POS_PREVIEW, (len(positions_raw), 1))
+
+    res = dict(zip(map(int, positions_raw.keys()), pos.tolist()))
+    return res, data['graph']['edges']
+
+
 def assemble_games_dataframe():
     df = []
     filenames = get_list_of_game_files()
     for file in filenames:
-        with open('games/' + file, 'r') as f:
+        with open(os.path.join(GAMES_DIR, file), 'r') as f:
             dat = json.load(f)
         data = {}
         graph = dat['graph']

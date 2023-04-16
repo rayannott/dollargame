@@ -7,6 +7,8 @@ from random import choice
 import numpy as np
 import networkx as nx
 
+# from utils import GAMES_DIR
+
 
 class DGGraph(nx.Graph):
     def __init__(self, **kwargs):
@@ -146,6 +148,8 @@ def generate_game(number_of_nodes: int, bank_minus_genus=0, display_layout='plan
         posit = nx.planar_layout(G)
     elif display_layout == 'shell':
         posit = nx.shell_layout(G)
+    else:
+        raise KeyError('Unknown layout:', display_layout)
 
     genus = G.number_of_edges() - G.number_of_nodes() + 1
     values = random_list_of_values(

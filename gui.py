@@ -4,6 +4,7 @@ from itertools import count
 import time
 
 import pygame
+import numpy as np
 
 from ui_elements import Button, HoverTooltip, Panel, Counter, TextInput
 from graph import DGGraph, load_game, generate_game, find_best, show_instruction
@@ -91,6 +92,25 @@ def display_nodes_edges(G, node_to_highlight):
         pygame.draw.line(screen, THEME['def'],
                          G.nodes[s]['pos'],
                          G.nodes[f]['pos'], 2)
+
+def shift_tuple(tup, delta):
+    return (tup[0] + delta[0], tup[1] + delta[1])
+
+def display_graph_preview(positions: dict[int, np.array], edges: np.array, current_mouse_pos: np.array):
+    pygame.draw.rect(screen, THEME['button_inactive'], 
+                    pygame.Rect(shift_tuple(current_mouse_pos, (-15, -15)), shift_tuple(UPSCALE_POS_PREVIEW, (30, 30))),
+                    border_radius=3)
+    pygame.draw.rect(screen, THEME['def'], 
+                    pygame.Rect(shift_tuple(current_mouse_pos, (-10, -10)), shift_tuple(UPSCALE_POS_PREVIEW, (20, 20))),
+                    border_radius=3, width=2)
+    for pos in positions.values():
+        pygame.draw.circle(screen, THEME['def'], pos + current_mouse_pos, 4)
+    for s, f in edges:
+        pygame.draw.line(screen, THEME['def'],
+                        positions[s] + current_mouse_pos,
+                        positions[f] + current_mouse_pos, 1)
+
+# ------------------------------
 
 def node_gives(node_down, g, anim, moves, silent=False):
     print(f'Node {node_down} gives')
@@ -271,9 +291,12 @@ def OpenGameWindow():
     hover = HoverTooltip(
         objects=[btn_back, btn_randomgame], topleft=(240, 570))
     clock = pygame.time.Clock()
+    mouse = None
     
     kb_controls = -1; existing_game_file = False
     GAME_FILES = get_list_of_game_files()
+
+    games_previews_cache: dict[int, tuple[np.array, np.array]] = {} # game_number -> (nodes_positions, edges)
 
     running_opengame = True
     while running_opengame:
@@ -316,10 +339,8 @@ def OpenGameWindow():
                     start, finish = shift_panels(
                         start, finish, shift=(1 if wheel_up else -1), number_of_panels=len(panels))
                     panels9 = panels[start:finish]
-
             elif event.type == pygame.QUIT:
                 running_opengame = False
-            
             elif event.type == pygame.KEYDOWN:
                 pressed_number = PYGAME_KEYS.get(event.key)
                 if pressed_number is not None:
@@ -374,6 +395,22 @@ def OpenGameWindow():
         screen.blit(my_font.render(
             f'{kb_controls if kb_controls != -1 else ""}', 
             False, GREEN if existing_game_file else RED), (608, 562))
+        
+        if mouse and pygame.key.get_mods() & pygame.KMOD_SHIFT:
+            panel_number = what_rect_hover(mouse)
+            if panel_number is not None:
+                game_number = panels9[panel_number].data['game_number']
+                filename = f'{game_number}.json'
+
+                graph_to_display = games_previews_cache.get(game_number)
+                if graph_to_display is None:
+                    print('saved', game_number)
+                    graph_to_display = pull_transform_positions_edges_from_gamefile(filename)
+                    games_previews_cache[game_number] = graph_to_display
+                
+                display_graph_preview(*graph_to_display, current_mouse_pos=np.array(mouse, dtype=float))
+
+                
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
