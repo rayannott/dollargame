@@ -176,14 +176,17 @@ def SandboxWindow():
                             if up_bool:
                                 if node_down == node_up:
                                     remove_node(G, node_up)
+                                    play_sfx('node_action')
                                 else:
                                     if (node_down, node_up) in G.edges:
                                         remove_edge(G, node_down, node_up)
                                     else:
                                         create_edge(G, node_down, node_up)
+                                    play_sfx('edge_action')
                         else:
                             if dist(down, up) < 20 and far_enough_from_nodes(G, down):
                                 create_node(G, next(cnt), down)
+                                play_sfx('node_action')
                 elif event.type == pygame.QUIT:
                     running = False
             else:
