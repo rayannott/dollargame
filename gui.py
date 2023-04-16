@@ -396,6 +396,8 @@ def OpenGameWindow():
             f'{kb_controls if kb_controls != -1 else ""}', 
             False, GREEN if existing_game_file else RED), (608, 562))
         
+        pygame.draw.rect(screen, THEME['def'], [10, 10, 780, 530], 4)
+
         if mouse and pygame.key.get_mods() & pygame.KMOD_SHIFT:
             panel_number = what_rect_hover(mouse)
             if panel_number is not None:
@@ -404,19 +406,15 @@ def OpenGameWindow():
 
                 graph_to_display = games_previews_cache.get(game_number)
                 if graph_to_display is None:
-                    print('saved', game_number)
                     graph_to_display = pull_transform_positions_edges_from_gamefile(filename)
                     games_previews_cache[game_number] = graph_to_display
                 
-                display_graph_preview(*graph_to_display, current_mouse_pos=np.array(mouse, dtype=float))
-
-                
+                display_graph_preview(*graph_to_display, current_mouse_pos=np.array(mouse, dtype=float))        
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
         hover.display(mouse, screen, my_font_hover)
 
-        pygame.draw.rect(screen, THEME['def'], [10, 10, 780, 530], 4)
         pygame.display.update()
         clock.tick(FRAMERATE)
 
