@@ -185,7 +185,7 @@ class Commands:
                 g = load_game(myfile)
                 moves_best, min_num_moves = find_best(g, N=1000)
                 moves_str = Commands.special_join(
-                    show_instruction(moves_best, take_give_symbols='words'))
+                    show_instruction(moves_best, arrows=False))
                 return f'(by the algorithm) game #{game_number}& collapsed number of moves: {min_num_moves}, &{moves_str}'
             else:
                 best_solution_player, min_number = best_solution_by_player(
@@ -194,7 +194,7 @@ class Commands:
                     best_play_collapsed, min_num_collapsed = collapse_moves(
                         best_solution_player)
                     best_play_instruction = show_instruction(
-                        best_play_collapsed, take_give_symbols='words')
+                        best_play_collapsed, arrows=False)
                     best_play_moves_str = Commands.special_join(
                         best_play_instruction)
                     return f'(by the player) game #{game_number}&collapsed number of moves: {min_num_collapsed}, &{best_play_moves_str}'
