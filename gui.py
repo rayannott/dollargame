@@ -272,6 +272,9 @@ def OpenGameWindow():
     hover = HoverTooltip(
         objects=[btn_back, btn_randomgame], topleft=(240, 570))
     clock = pygame.time.Clock()
+    
+    kb_controls = -1; existing_game_file = False
+    GAME_FILES = get_list_of_game_files()
 
     running_opengame = True
     while running_opengame:
@@ -317,6 +320,33 @@ def OpenGameWindow():
 
             elif event.type == pygame.QUIT:
                 running_opengame = False
+            
+            elif event.type == pygame.KEYDOWN:
+                pressed_number = PYGAME_KEYS.get(event.key)
+                if pressed_number is not None:
+                    if kb_controls == -1:
+                        kb_controls = pressed_number
+                    else:
+                        kb_controls *= 10; kb_controls += pressed_number
+                else:
+                    if event.key == pygame.K_RETURN:
+                        if existing_game_file:
+                            filename = f'{kb_controls}.json'
+                            g = load_game(filename)
+                            GameWindow(g, filename)
+                            update = True
+                            kb_controls = -1
+                        else:
+                            kb_controls = -1
+                    elif event.key == pygame.K_BACKSPACE:
+                        if kb_controls != -1:
+                            kb_controls //= 10
+                        if kb_controls == 0:
+                            kb_controls = -1
+                    elif event.key == pygame.K_ESCAPE:
+                        kb_controls = -1
+                existing_game_file = f'{kb_controls}.json' in GAME_FILES
+                    
 
         if update:
             pygame.display.set_caption('Open game...')
@@ -342,6 +372,9 @@ def OpenGameWindow():
                                    False, THEME['def']), (15+400, 15))
         screen.blit(my_font.render('Date created', False,
                                    THEME['def']), (15+575, 15))
+        screen.blit(my_font.render(
+            f'{kb_controls if kb_controls != -1 else ""}', 
+            False, GREEN if existing_game_file else RED), (608, 562))
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
