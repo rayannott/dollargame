@@ -12,7 +12,6 @@ sfx = {file[:-4]: mixer.Sound(os.path.join(SFX_DIR, file))
     for file in sfx_files if not file.startswith('bg_music')}
 
 bg_music_tracks = [os.path.join(SFX_DIR, file) for file in sfx_files if file.startswith('bg_music')]
-print(bg_music_tracks)
 
 def set_sfx_volume(vol):
     global sfx
