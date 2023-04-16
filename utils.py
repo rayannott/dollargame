@@ -93,7 +93,6 @@ def pull_transform_positions_edges_from_gamefile(filename):
     pos = np.array(list(positions_raw.values()), dtype=float)
     pos -= np.min(pos, axis=0)
     pos /= np.max(pos, axis=0)
-    print(pos)
     pos *= UPSCALE_POS_PREVIEW
     # pos *= np.tile(UPSCALE_POS_PREVIEW, (len(positions_raw), 1))
 
