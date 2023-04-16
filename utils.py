@@ -19,6 +19,7 @@ ANIMATION_PATHS_LINGERING_TIME = 1.45 # in animation duration units
 FONT_DIR = os.path.join('assets', 'UASQUARE.ttf')
 THEME_DIR = os.path.join('assets', 'theme.json')
 OPTIONS_DIR = os.path.join('assets', 'options.json')
+GAMES_DIR = 'games'
 
 with open(OPTIONS_DIR, 'r') as f:
     OPTIONS = json.load(f)
@@ -58,9 +59,9 @@ PYGAME_KEYS = {
 }
 
 def get_list_of_game_files():
-    if not os.path.isdir('games'):
-        os.mkdir('games')
-    return [el for el in os.listdir('games') if el.endswith('.json')]
+    if not os.path.isdir(GAMES_DIR):
+        os.mkdir(GAMES_DIR)
+    return [el for el in os.listdir(GAMES_DIR) if el.endswith('.json')]
 
 
 def get_random_game():

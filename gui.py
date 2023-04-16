@@ -405,7 +405,7 @@ def GameWindow(g, filename=None):
         # in case an existing game is opened
         btn_save.is_active = False
         val = int(filename[:-5])
-        with open(f'games/{val}.json',) as f:
+        with open(os.path.join(GAMES_DIR, filename)) as f:
             dat = json.load(f)
         if len(dat['plays']) > 0:
             best = min([len(play['moves']) for play in dat['plays']])
