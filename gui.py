@@ -134,8 +134,11 @@ def SandboxWindow():
                          text='Proceed', is_active=False, hover_text='play!')
     btn_discard = Button(topleft=(30, 510), size=(100, 40), text='Discard',
                          hover_text='go back (loses progress)')
-    hover = HoverTooltip(objects=[
-                         btn_proceed, btn_discard, btn_generate, cnt_b_minus_g, cnt_nodes, btn_clear])
+    objects = [
+        btn_proceed, btn_discard, btn_generate,
+        btn_clear, cnt_nodes, cnt_b_minus_g
+    ]
+    hover = HoverTooltip(objects=objects)
     clock = pygame.time.Clock()
 
     # Game creation loop
@@ -240,12 +243,8 @@ def SandboxWindow():
                                      G.nodes[node_down]['pos'], pos, 2)
 
         btn_proceed.is_active = is_game_valid(G)
-        btn_proceed.draw(screen, my_font)
-        btn_discard.draw(screen, my_font)
-        btn_generate.draw(screen, my_font)
-        btn_clear.draw(screen, my_font)
-        cnt_nodes.draw(screen, my_font)
-        cnt_b_minus_g.draw(screen, my_font)
+        for obj in objects:
+            obj.draw(screen, my_font)
 
         # hover tooltips
         mouse = pygame.mouse.get_pos()
