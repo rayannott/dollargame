@@ -92,6 +92,23 @@ def display_nodes_edges(G, node_to_highlight):
                          G.nodes[s]['pos'],
                          G.nodes[f]['pos'], 2)
 
+def node_gives(node_down, g, anim, moves, silent=False):
+    print(f'Node {node_down} gives')
+    g.give(node_down)
+    if not silent:
+        play_sfx('scroll_short_click')
+    if OPTIONS['bezier_animation']:
+        anim.add_curves(animation.get_curves(g, node_down, give=True))
+    moves.append((node_down, 'give'))
+
+def node_takes(node_down, g, anim, moves, silent=False):
+    print(f'Node {node_down} takes')
+    g.take(node_down)
+    if not silent:
+        play_sfx('scroll_short_click')
+    if OPTIONS['bezier_animation']:
+        anim.add_curves(animation.get_curves(g, node_down, give=False))
+    moves.append((node_down, 'take'))
 
 # ----------------WINDOWS --------------------
 
@@ -374,6 +391,8 @@ def GameWindow(g, filename=None):
     anim = animation.Animation()
     moves_best = None
 
+    kb_controls = -1; prev_node_index = None
+
 
     while running_game:
         screen.fill(THEME['background'])
@@ -410,38 +429,57 @@ def GameWindow(g, filename=None):
                         if down_bool:
                             if not up_bool:
                                 if down[1] > up[1]:
-                                    print(f'Node {node_down} gives')
-                                    g.give(node_down)
-                                    play_sfx('scroll_short_click')
-                                    moves.append((node_down, 'give'))
+                                    node_gives(node_down, g, anim, moves)
                                 else:
-                                    print(f'Node {node_down} takes')
-                                    g.take(node_down)
-                                    play_sfx('scroll_short_click')
-                                    moves.append((node_down, 'take'))
+                                    node_takes(node_down, g, anim, moves)
                         is_victory = g.is_victory()
                 else:
                     down_bool, node_down = mouse_on_node(g, down)
                     up_bool, _ = mouse_on_node(g, up)
                     if down_bool and not is_victory:
                         if event.button == 4:
-                            print(f'Node {node_down} gives')
-                            g.give(node_down)
-                            play_sfx('scroll_short_click')
-                            if OPTIONS['bezier_animation']:
-                                anim.add_curves(animation.get_curves(g, node_down, give=True))
-                            moves.append((node_down, 'give'))
+                            node_gives(node_down, g, anim, moves)
                         elif event.button == 5:
-                            print(f'Node {node_down} takes')
-                            g.take(node_down)
-                            play_sfx('scroll_short_click')
-                            if OPTIONS['bezier_animation']:
-                                anim.add_curves(animation.get_curves(g, node_down, give=False))
-                            moves.append((node_down, 'take'))
+                            node_takes(node_down, g, anim, moves)
                     is_victory = g.is_victory()
 
             elif event.type == pygame.QUIT:
                 running_game = False
+            
+            elif event.type == pygame.KEYDOWN:
+                if is_victory:
+                    continue
+                pressed_number = PYGAME_KEYS.get(event.key)
+                if pressed_number is not None:
+                    if kb_controls == -1:
+                        kb_controls = pressed_number
+                    else:
+                        kb_controls *= 10; kb_controls += pressed_number
+                else:
+                    if event.key == pygame.K_UP:
+                        chosen_node = None
+                        if kb_controls != -1:
+                            chosen_node = kb_controls
+                        elif prev_node_index is not None:
+                            chosen_node = prev_node_index
+                        if not chosen_node in g.nodes:
+                            kb_controls = -1
+                            continue
+                        node_gives(chosen_node, g, anim, moves)
+                        prev_node_index = chosen_node
+                        kb_controls = -1
+                    elif event.key == pygame.K_DOWN:
+                        chosen_node = None
+                        if kb_controls != -1:
+                            chosen_node = kb_controls
+                        elif prev_node_index is not None:
+                            chosen_node = prev_node_index
+                        if not chosen_node in g.nodes:
+                            kb_controls = -1
+                            continue
+                        node_takes(chosen_node, g, anim, moves)
+                        prev_node_index = chosen_node
+                        kb_controls = -1
                     elif event.key == pygame.K_RETURN:
                         if moves_best is None or moves: continue
                         print('solving...')
@@ -470,6 +508,11 @@ def GameWindow(g, filename=None):
         display_labels(g, sandbox=False, num_moves=len(moves))
         anim.draw(screen)
         anim.tick(dt)
+
+        screen.blit(my_font.render(
+            f'[{kb_controls if kb_controls != -1 else (prev_node_index if prev_node_index is not None else "")}]', 
+            False, '#FFFFFF'), 
+            (10, HEIGHT-24))
 
         if moves_best is not None and OPTIONS['show_best_possible']:
             btn_best.draw(screen, my_font)
