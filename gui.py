@@ -576,18 +576,9 @@ def GameWindow(g, filename=None):
 
 def OptionsWindow():
     pygame.display.set_caption('Options')
-    show_indices = OPTIONS['show_node_ids']
-    show_best_possible = OPTIONS['show_best_possible']
-    sort_by = OPTIONS['sort_by']
-    sort_by_num = SORTBY_LIST.index(sort_by)
-    layout = OPTIONS['layout']
-    layout_num = LAYOUT_LIST.index(layout)
-    theme = OPTIONS['theme']
-    wiggle = OPTIONS['wiggle']
-    bezier_animation = OPTIONS['bezier_animation']
-    bg_music_volume = OPTIONS['bg_music_volume']
-    sfx_volume = OPTIONS['sfx_volume']
-    theme_num = THEME_LIST.index(theme)
+    sort_by_num = SORTBY_LIST.index(OPTIONS['sort_by'])
+    layout_num = LAYOUT_LIST.index(OPTIONS['layout'])
+    theme_num = THEME_LIST.index(OPTIONS['theme'])
     cmdline = Commands()
     clock = pygame.time.Clock()
 
@@ -609,13 +600,12 @@ def OptionsWindow():
                         text='Wiggle', hover_text='toggle button wiggle')
     btn_bezier_animation = Button(topleft=(10, 310), size=(120, 40),
                         text='Paths', hover_text='toggle animated paths between nodes')
-    cnt_bg_music_volume = Counter(topleft=(10, 360), size=(110, 40), value=bg_music_volume, bounds=(0, 100),
+    cnt_bg_music_volume = Counter(topleft=(10, 360), size=(110, 40), value=OPTIONS['bg_music_volume'], bounds=(0, 100),
                             text='Music', hover_text='background music volume')
     btn_next_bg_track = Button(topleft=(200, 360), size=(60, 40),
                         text='Next', hover_text='switch backgroung music track')
-    cnt_sfx_volume = Counter(topleft=(10, 410), size=(110, 40), value=sfx_volume, bounds=(0, 100),
+    cnt_sfx_volume = Counter(topleft=(10, 410), size=(110, 40), value=OPTIONS['sfx_volume'], bounds=(0, 100),
                             text='SFX', hover_text='sound effects volume')
-
     txt_console = TextInput(topleft=(330, 10), size=(460, 40),
                         text='', hover_text=f'this is the command line', text_placement_specifier='input_text')
     objects = [
@@ -640,45 +630,36 @@ def OptionsWindow():
                         play_sfx('click')
                         running_options = False
                     elif btn_save.hovering(up):
-                        print('Settings saved')
-                        OPTIONS['show_node_ids'] = show_indices
-                        OPTIONS['sort_by'] = sort_by
-                        OPTIONS['layout'] = layout
-                        OPTIONS['show_best_possible'] = show_best_possible
-                        OPTIONS['theme'] = theme
-                        OPTIONS['wiggle'] = wiggle
-                        OPTIONS['bezier_animation'] = bezier_animation
-                        OPTIONS['bg_music_volume'] = bg_music_volume
-                        OPTIONS['sfx_volume'] = sfx_volume
                         with open(OPTIONS_DIR, 'w') as f:
                             json.dump(OPTIONS, f)
                         cmdline.log('info: saved successfully')
+                        print('Settings saved')
                         play_sfx('options_switch')
                     elif btn_show_ind.hovering(up):
-                        show_indices = not show_indices
+                        OPTIONS['show_node_ids'] = not OPTIONS['show_node_ids']
                         play_sfx('options_switch')
                     elif btn_show_best_possible.hovering(up):
-                        show_best_possible = not show_best_possible
+                        OPTIONS['show_best_possible'] = not OPTIONS['show_best_possible']
                         play_sfx('options_switch')
                     elif btn_sort_by.hovering(up):
                         sort_by_num += 1
-                        sort_by = SORTBY_LIST[sort_by_num % len(SORTBY_LIST)]
+                        OPTIONS['sort_by'] = SORTBY_LIST[sort_by_num % len(SORTBY_LIST)]
                         play_sfx('options_switch')
                     elif btn_layout.hovering(up):
                         layout_num += 1
-                        layout = LAYOUT_LIST[layout_num % len(LAYOUT_LIST)]
+                        OPTIONS['layout'] = LAYOUT_LIST[layout_num % len(LAYOUT_LIST)]
                         play_sfx('options_switch')
                     elif btn_theme.hovering(up):
                         theme_num += 1
-                        theme = THEME_LIST[theme_num % len(THEME_LIST)]
+                        OPTIONS['theme'] = THEME_LIST[theme_num % len(THEME_LIST)]
                         cmdline.log(
-                            f'info: save and then restart the game to & update the theme to [{theme}]')
+                            f'info: save and then restart the game to & update the theme to [{OPTIONS["theme"]}]')
                         play_sfx('options_switch')
                     elif btn_wiggle.hovering(up):
-                        wiggle = not wiggle
+                        OPTIONS['wiggle'] = not OPTIONS['wiggle']
                         play_sfx('options_switch')
                     elif btn_bezier_animation.hovering(up):
-                        bezier_animation = not bezier_animation
+                        OPTIONS['bezier_animation'] = not OPTIONS['bezier_animation']
                         play_sfx('options_switch')
                     elif btn_next_bg_track.hovering(up):
                         play_bg_music()
@@ -689,10 +670,10 @@ def OptionsWindow():
                     if cnt_bg_music_volume.hovering(up, add=1 if event.button == 4 else -1) or \
                     cnt_sfx_volume.hovering(up, add=1 if event.button == 4 else -1):
                         play_sfx('scroll_short_click')
-                        bg_music_volume = cnt_bg_music_volume.value
-                        bg_music_set_vol(bg_music_volume/100)
-                        sfx_volume = cnt_sfx_volume.value
-                        set_sfx_volume(sfx_volume/100)
+                        OPTIONS['bg_music_volume'] = cnt_bg_music_volume.value
+                        bg_music_set_vol(OPTIONS['bg_music_volume']/100)
+                        OPTIONS['sfx_volume'] = cnt_sfx_volume.value
+                        set_sfx_volume(OPTIONS['sfx_volume']/100)
             elif event.type == pygame.KEYDOWN:
                 if txt_console.input_mode:
                     if event.key == pygame.K_BACKSPACE:
@@ -743,19 +724,19 @@ def OptionsWindow():
 
         # some text
         x, y = btn_show_ind.topleft
-        screen.blit(my_font.render(str(show_indices), False, GREEN if show_indices else RED),
+        screen.blit(my_font.render(str(OPTIONS['show_node_ids']), False, GREEN if OPTIONS['show_node_ids'] else RED),
                     (x + btn_show_ind.size[0] + 5, y + 13))
-        screen.blit(my_font.render(str(show_best_possible), False, GREEN if show_best_possible else RED),
+        screen.blit(my_font.render(str(OPTIONS['show_best_possible']), False, GREEN if OPTIONS['show_best_possible'] else RED),
                     (x + btn_show_ind.size[0] + 5, y + 60))
-        screen.blit(my_font.render(sort_by, False, THEME['def']),
+        screen.blit(my_font.render(OPTIONS['sort_by'], False, THEME['def']),
                     (x + btn_show_ind.size[0] + 5, y + 108))
-        screen.blit(my_font.render(layout, False, THEME['def']),
+        screen.blit(my_font.render(OPTIONS['layout'], False, THEME['def']),
                     (x + btn_show_ind.size[0] + 5, y + 160))
-        screen.blit(my_font.render(theme, False, THEME['def']),
+        screen.blit(my_font.render(OPTIONS['theme'], False, THEME['def']),
                     (x + btn_show_ind.size[0] + 5, y + 210))
-        screen.blit(my_font.render(str(wiggle), False, GREEN if wiggle else RED),
+        screen.blit(my_font.render(str(OPTIONS['wiggle']), False, GREEN if OPTIONS['wiggle'] else RED),
                     (x + btn_show_ind.size[0] + 5, y + 260))
-        screen.blit(my_font.render(str(bezier_animation), False, GREEN if bezier_animation else RED),
+        screen.blit(my_font.render(str(OPTIONS['bezier_animation']), False, GREEN if OPTIONS['bezier_animation'] else RED),
                     (x + btn_show_ind.size[0] + 5, y + 310))
 
         # light yellow outline
