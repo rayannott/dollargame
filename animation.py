@@ -76,7 +76,7 @@ class Animation:
                 [0, curve, color]
             )
     
-    def tick(self, dt):
+    def tick(self):
         for i, process in enumerate(self.processes):
             process[0] += 2
             if self.CURVE_RESOLUTION < process[0] <= self.CURVE_RESOLUTION * ANIMATION_PATHS_LINGERING_TIME:

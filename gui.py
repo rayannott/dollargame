@@ -540,7 +540,7 @@ def GameWindow(g, filename=None):
         display_nodes_edges(g, on_node)
         display_labels(g, sandbox=False, num_moves=len(moves))
         anim.draw(screen)
-        anim.tick(dt)
+        anim.tick()
 
         screen.blit(my_font.render(
             f'[{kb_controls if kb_controls != -1 else (prev_node_index if prev_node_index is not None else "")}]', 
