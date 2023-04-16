@@ -1,6 +1,7 @@
 import json
 from copy import deepcopy
 from itertools import count
+import time
 
 import pygame
 
@@ -441,6 +442,17 @@ def GameWindow(g, filename=None):
 
             elif event.type == pygame.QUIT:
                 running_game = False
+                    elif event.key == pygame.K_RETURN:
+                        if moves_best is None or moves: continue
+                        print('solving...')
+                        for node, move in moves_best.items():
+                            if move > 0:
+                                for _ in range(abs(move)):
+                                    node_takes(node, g, anim, moves, silent=True)
+                            elif move < 0:
+                                for _ in range(abs(move)):
+                                    node_gives(node, g, anim, moves, silent=True)
+                    is_victory = g.is_victory()
 
         if is_victory and only_once:
             print('You won!')
