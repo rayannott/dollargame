@@ -125,6 +125,7 @@ def SandboxWindow():
         screen.fill(THEME['background'])
         for event in pygame.event.get():
             if not pygame.key.get_mods() & pygame.KMOD_SHIFT:
+                holding_with_shift = False # fixed issue #4
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     down = pygame.mouse.get_pos()
                     holding_down = True
