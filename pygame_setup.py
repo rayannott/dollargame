@@ -45,7 +45,7 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
     for n in G.nodes():
         current_value = G.nodes[n]['val']
         pos = G.nodes[n]['pos']
-        blit(str(current_value), (pos[0]+20, pos[1]+12), THEME['def'], my_font_bigger)
+        blit(str(current_value), (pos[0]+20, pos[1]+12), THEME['def'] if current_value >= 0 else RED, my_font_bigger)
         if OPTIONS['show_node_ids']:
             blit(str(n), (pos[0]-36, pos[1]-14), THEME['indices_text'])
 
