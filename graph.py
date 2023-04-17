@@ -7,7 +7,28 @@ from random import choice
 import numpy as np
 import networkx as nx
 
-# from utils import GAMES_DIR
+from utils import GAMES_DIR, OPTIONS, get_list_of_game_files
+import animation
+from sfx import play_sfx
+
+
+def node_gives(node_down, g, anim, moves, silent=False):
+    print(f'Node {node_down} gives')
+    g.give(node_down)
+    if not silent:
+        play_sfx('scroll_short_click')
+    if OPTIONS['bezier_animation']:
+        anim.add_curves(animation.get_curves(g, node_down, give=True))
+    moves.append((node_down, 'give'))
+
+def node_takes(node_down, g, anim, moves, silent=False):
+    print(f'Node {node_down} takes')
+    g.take(node_down)
+    if not silent:
+        play_sfx('scroll_short_click')
+    if OPTIONS['bezier_animation']:
+        anim.add_curves(animation.get_curves(g, node_down, give=False))
+    moves.append((node_down, 'take'))
 
 
 class DGGraph(nx.Graph):
@@ -89,7 +110,7 @@ class DGGraph(nx.Graph):
 # utils
 
 def load_game(filename):
-    with open(os.path.join('games', filename), 'r') as fr:
+    with open(os.path.join(GAMES_DIR, filename), 'r') as fr:
         dat = json.load(fr)
     G = DGGraph(info=dat['info'])
     for n, v in dat['graph']['values'].items():
@@ -98,6 +119,12 @@ def load_game(filename):
         G.add_edge(*e)
     return G
 
+def get_random_game():
+    games0 = get_list_of_game_files()
+    if len(games0) > 0:
+        filename = choice(games0)
+        return load_game(filename), filename
+    return None, None
 
 # graph generation
 
