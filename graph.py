@@ -7,7 +7,7 @@ from random import choice
 import numpy as np
 import networkx as nx
 
-from utils import GAMES_DIR, OPTIONS, get_list_of_game_files
+from utils import GAMES_DIR, OPTIONS, get_list_of_game_files, dist
 import animation
 from sfx import play_sfx
 
@@ -30,6 +30,57 @@ def node_takes(node_down, g, anim, moves, silent=False):
         anim.add_curves(animation.get_curves(g, node_down, give=False))
     moves.append((node_down, 'take'))
 
+def is_game_valid(G):
+    mask = [G.nodes[n]['val'] < 0 for n in G.nodes]
+    at_least_one_negative = sum(mask)
+    winnable = G.bank >= G.genus
+    enough_nodes = len(G.nodes) > 2
+    enough_edges = len(G.edges) > 1
+    connected = G.is_connected()
+    return winnable and enough_nodes and enough_edges and at_least_one_negative and connected
+
+
+def mouse_on_node(G, pos):
+    for node, attr in G.nodes.items():
+        if dist(pos, attr['pos']) < 20:
+            return (True, node)
+    return (False, None)
+
+
+def create_node(G, node_num, pos):
+    G.add_node(node=node_num, val=0, pos=pos)
+    print(f'Node {node_num} created: {G.nodes[node_num]}')
+
+
+def remove_node(G, node_num):
+    G.remove_node(node_num)
+    print(f'Node {node_num} removed')
+
+
+def create_edge(G, s, f):
+    G.add_edge(s, f)
+    print(f'Created edge {s}->{f}')
+
+
+def remove_edge(G, s, f):
+    G.remove_edge(s, f)
+    print(f'Removed edge {s}->{f}')
+
+
+def increase_value(G, node):
+    G.change_value(node, increase=True)
+
+
+def decrease_value(G, node):
+    G.change_value(node, increase=False)
+
+
+def far_enough_from_nodes(G, release_pos):
+    # to avoid overcrowding :)
+    for node in G.nodes:
+        if dist(release_pos, G.nodes[node]['pos']) < 80:
+            return False
+    return True
 
 class DGGraph(nx.Graph):
     def __init__(self, **kwargs):

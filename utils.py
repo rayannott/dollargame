@@ -199,57 +199,6 @@ def dist(p1, p2):
     return sqrt((p1[1]-p2[1])**2 + (p1[0]-p2[0])**2)
 
 
-def is_game_valid(G):
-    mask = [G.nodes[n]['val'] < 0 for n in G.nodes]
-    at_least_one_negative = sum(mask)
-    winnable = G.bank >= G.genus
-    enough_nodes = len(G.nodes) > 2
-    enough_edges = len(G.edges) > 1
-    connected = G.is_connected()
-    return winnable and enough_nodes and enough_edges and at_least_one_negative and connected
-
-
-def mouse_on_node(G, pos):
-    for node, attr in G.nodes.items():
-        if dist(pos, attr['pos']) < 20:
-            return (True, node)
-    return (False, None)
-
-
-def create_node(G, node_num, pos):
-    G.add_node(node=node_num, val=0, pos=pos)
-    print(f'Node {node_num} created: {G.nodes[node_num]}')
-
-
-def remove_node(G, node_num):
-    G.remove_node(node_num)
-    print(f'Node {node_num} removed')
-
-
-def create_edge(G, s, f):
-    G.add_edge(s, f)
-    print(f'Created edge {s}->{f}')
-
-
-def remove_edge(G, s, f):
-    G.remove_edge(s, f)
-    print(f'Removed edge {s}->{f}')
-
-
-def increase_value(G, node):
-    G.change_value(node, increase=True)
-
-
-def decrease_value(G, node):
-    G.change_value(node, increase=False)
-
-
-def far_enough_from_nodes(G, release_pos):
-    # to avoid overcrowding :)
-    for node in G.nodes:
-        if dist(release_pos, G.nodes[node]['pos']) < 80:
-            return False
-    return True
 
 class Vec2:
     def __init__(self, x: float, y: float) -> None:

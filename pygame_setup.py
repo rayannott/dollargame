@@ -4,7 +4,8 @@ import numpy as np
 import pygame
 from ui_elements import Panel
 
-from utils import GREEN, OPTIONS, PANEL_HEIGHT, RED, THEME, UPSCALE_POS_PREVIEW, WIDTH, HEIGHT, FONT_DIR, is_game_valid
+from utils import GREEN, OPTIONS, PANEL_HEIGHT, RED, THEME, UPSCALE_POS_PREVIEW, WIDTH, HEIGHT, FONT_DIR
+from graph import is_game_valid
 
 
 pygame_icon = pygame.image.load(os.path.join('assets','icon.png'))

@@ -4,7 +4,7 @@ import pygame
 
 from utils import *
 from pygame_setup import *
-from graph import DGGraph, generate_game
+from graph import DGGraph, create_edge, create_node, decrease_value, far_enough_from_nodes, generate_game, increase_value, mouse_on_node, remove_edge, remove_node
 from ui_elements import Button, HoverTooltip, Panel, Counter, TextInput
 from sfx import play_sfx
 from windows.game import GameWindow

@@ -1,7 +1,7 @@
 from copy import deepcopy
 
 import pygame
-from graph import find_best, show_instruction, node_gives, node_takes
+from graph import find_best, mouse_on_node, show_instruction, node_gives, node_takes
 
 from utils import *
 from pygame_setup import *
