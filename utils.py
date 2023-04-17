@@ -7,7 +7,6 @@ from math import sqrt
 import numpy as np
 import pygame
 
-from graph import load_game
 
 FRAMERATE = 60
 PANEL_HEIGHT = 50
@@ -67,14 +66,6 @@ def get_list_of_game_files():
     if not os.path.isdir(GAMES_DIR):
         os.mkdir(GAMES_DIR)
     return [el for el in os.listdir(GAMES_DIR) if el.endswith('.json')]
-
-
-def get_random_game():
-    games0 = get_list_of_game_files()
-    if len(games0) > 0:
-        filename = choice(games0)
-        return load_game(filename), filename
-    return None, None
 
 
 def get_next_game_number():
