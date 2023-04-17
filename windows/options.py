@@ -158,21 +158,14 @@ def OptionsWindow():
         hover.display(mouse, screen, my_font_hover)
 
         # some text
-        x, y = btn_show_ind.topleft
-        screen.blit(my_font.render(str(OPTIONS['show_node_ids']), False, GREEN if OPTIONS['show_node_ids'] else RED),
-                    (x + btn_show_ind.size[0] + 5, y + 13))
-        screen.blit(my_font.render(str(OPTIONS['show_best_possible']), False, GREEN if OPTIONS['show_best_possible'] else RED),
-                    (x + btn_show_ind.size[0] + 5, y + 60))
-        screen.blit(my_font.render(OPTIONS['sort_by'], False, THEME['def']),
-                    (x + btn_show_ind.size[0] + 5, y + 108))
-        screen.blit(my_font.render(OPTIONS['layout'], False, THEME['def']),
-                    (x + btn_show_ind.size[0] + 5, y + 160))
-        screen.blit(my_font.render(OPTIONS['theme'], False, THEME['def']),
-                    (x + btn_show_ind.size[0] + 5, y + 210))
-        screen.blit(my_font.render(str(OPTIONS['wiggle']), False, GREEN if OPTIONS['wiggle'] else RED),
-                    (x + btn_show_ind.size[0] + 5, y + 260))
-        screen.blit(my_font.render(str(OPTIONS['bezier_animation']), False, GREEN if OPTIONS['bezier_animation'] else RED),
-                    (x + btn_show_ind.size[0] + 5, y + 310))
+        x, y = btn_show_ind.topleft  
+        blit(str(OPTIONS['show_node_ids']), (x + btn_show_ind.size[0] + 5, y + 13), GREEN if OPTIONS['show_node_ids'] else RED)
+        blit(str(OPTIONS['show_best_possible']), (x + btn_show_ind.size[0] + 5, y + 60), GREEN if OPTIONS['show_best_possible'] else RED)
+        blit(OPTIONS['sort_by'], (x + btn_show_ind.size[0] + 5, y + 108), THEME['def'])
+        blit(OPTIONS['layout'], (x + btn_show_ind.size[0] + 5, y + 160))
+        blit(OPTIONS['theme'], (x + btn_show_ind.size[0] + 5, y + 210), THEME['def'])
+        blit(str(OPTIONS['wiggle']), (x + btn_show_ind.size[0] + 5, y + 260), GREEN if OPTIONS['wiggle'] else RED)
+        blit(str(OPTIONS['bezier_animation']), (x + btn_show_ind.size[0] + 5, y + 310), GREEN if OPTIONS['bezier_animation'] else RED)
 
         # light yellow outline
         pygame.draw.rect(screen, THEME['options_outline'], [

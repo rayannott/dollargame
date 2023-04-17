@@ -112,19 +112,12 @@ def OpenGameWindow():
         btn_shiftup.draw(screen, my_font)
 
         display_panels(panels9)
-        screen.blit(my_font.render('Game #', False,
-                                   THEME['def']), (15+10, 15))
-        screen.blit(my_font.render('Nodes/Edges', False,
-                                   THEME['def']), (15+130, 15))
-        screen.blit(my_font.render('# of plays', False,
-                                   THEME['def']), (15+270, 15))
-        screen.blit(my_font.render('Least # of moves',
-                                   False, THEME['def']), (15+400, 15))
-        screen.blit(my_font.render('Date created', False,
-                                   THEME['def']), (15+575, 15))
-        screen.blit(my_font.render(
-            f'{kb_controls if kb_controls != -1 else ""}', 
-            False, GREEN if existing_game_file else RED), (608, 562))
+        blit('Game #', (15+10, 15), THEME['def'])
+        blit('Nodes/Edges', (15+130, 15), THEME['def'])
+        blit('# of plays', (15+270, 15), THEME['def'])
+        blit('Least # of moves', (15+400, 15), THEME['def'])
+        blit('Date created', (15+575, 15), THEME['def'])
+        blit(f'{kb_controls if kb_controls != -1 else ""}', (608, 562), GREEN if existing_game_file else RED)
         
         pygame.draw.rect(screen, THEME['def'], [10, 10, 780, 530], 4)
 

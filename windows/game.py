@@ -167,23 +167,16 @@ def GameWindow(g, filename=None):
         display_labels(g, sandbox=False, num_moves=len(moves))
         anim.draw(screen)
         anim.tick()
-
-        screen.blit(my_font.render(
-            f'[{kb_controls if kb_controls != -1 else (prev_node_index if prev_node_index is not None else "")}]', 
-            False, '#FFFFFF'), 
-            (10, HEIGHT-24))
-
+        
+        blit(f'[{kb_controls if kb_controls != -1 else (prev_node_index if prev_node_index is not None else "")}]', (10, HEIGHT-24), '#FFFFFF')
+        
         if moves_best is not None and OPTIONS['show_best_possible']:
             btn_best.draw(screen, my_font)
-            screen.blit(my_font.render(
-                f'best possible', False, YELLOW), (20, 157))
-            screen.blit(my_font.render(
-                f'score: {min_num_moves}', False, YELLOW), (20, 175))
-
+            blit(f'best possible', (20, 157), YELLOW)
+            blit(f'score: {min_num_moves}', (20, 175), YELLOW)
             if show_best_moves:
                 for i, hint in enumerate(show_instruction(moves_best)):
-                    screen.blit(default_font.render(f'{hint}', False, YELLOW),
-                                (15 + i//10 * 72, 193 + (i-i//10*10)*18))
+                    blit(f'{hint}', (15 + i//10 * 72, 193 + (i-i//10*10)*18), YELLOW, default_font)
 
         # orange outline (when not solved)
         pygame.draw.rect(screen, THEME['playing_outline'] if not is_victory else THEME['won_outline'], [

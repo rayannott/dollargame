@@ -16,6 +16,9 @@ my_font = pygame.font.SysFont(FONT_DIR, 30)
 my_font_bigger = pygame.font.SysFont(FONT_DIR, 36)
 my_font_hover = pygame.font.SysFont(FONT_DIR, 26)
 
+def blit(text, position, color='#FFFFFF', font=my_font):
+    screen.blit(font.render(text, False, color), position)
+
 def create_panels(df):
     panels = []
     for dat in df:
@@ -31,10 +34,9 @@ def display_panels(panels):
 
 def display_prev_stats(game_number, best=None):
     dots = '...'
-    screen.blit(my_font.render(
-        f'Game #{game_number if game_number is not None else dots}', False, GREEN), (20, 110))
+    blit(f'Game #{game_number if game_number is not None else dots}', (20, 110), GREEN)
     if not best is None:
-        screen.blit(my_font.render(f'Best = {best}', False, GREEN), (20, 130))
+        blit(f'Best = {best}', (20, 130), GREEN)
 
 
 def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
@@ -42,29 +44,21 @@ def display_labels(G, sandbox, num_moves=None, y_shift_genus_bank=False):
     for n in G.nodes():
         current_value = G.nodes[n]['val']
         pos = G.nodes[n]['pos']
-        screen.blit(my_font_bigger.render(str(current_value), False,
-                    THEME['def'] if current_value >= 0 else RED), (pos[0]+20, pos[1]+12))
+        blit(str(current_value), (pos[0]+20, pos[1]+12), THEME['def'], my_font_bigger)
         if OPTIONS['show_node_ids']:
-            text_node_indices = my_font.render(
-                str(n), False, THEME['indices_text'])
-            screen.blit(text_node_indices, (pos[0]-36, pos[1]-14))
+            blit(str(n), (pos[0]-36, pos[1]-14), THEME['indices_text'])
 
     # display parameters (genus, bank) and indicator
     shift = 90 if y_shift_genus_bank else 0
-    screen.blit(my_font.render(
-        f'GENUS = {G.genus}', False, THEME['def']), (20, 40 + shift))
-    screen.blit(my_font.render(
-        f'BANK = {G.bank}', False, THEME['def']), (20, 60 + shift))
+    blit(f'GENUS = {G.genus}', (20, 40 + shift), THEME['def'])
+    blit(f'BANK = {G.bank}', (20, 60 + shift), THEME['def'])
 
     # sandbox if .. True else game
     if sandbox:
         valid = is_game_valid(G)
-        screen.blit(my_font.render(
-            'valid' if valid else 'invalid', False, GREEN if valid else RED), (20, 80))
-    else:
-        if not y_shift_genus_bank:
-            screen.blit(my_font.render(
-                f'MOVES = {num_moves}', False, THEME['def']), (20, 80 + shift))
+        blit('valid' if valid else 'invalid', (20, 80), GREEN if valid else RED)
+    elif not y_shift_genus_bank:
+        blit(f'MOVES = {num_moves}', (20, 80 + shift), THEME['def'])
 
 
 def display_nodes_edges(G, node_to_highlight):
