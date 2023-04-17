@@ -38,7 +38,7 @@ def GameWindow(g, filename=None):
         else:
             best = None
 
-    print(f'Game #{val} is started')
+    print(f'Game #{val}')
     running_game = True
     is_victory = False
     only_once = True
@@ -70,7 +70,6 @@ def GameWindow(g, filename=None):
                                     g_not_solved, moves, filename)
                                 btn_save.is_active = False
                             else:
-                                print('Save empty game')
                                 filename = save_new_game(g_not_solved)
                                 btn_save.is_active = False
                             val = int(filename[:-5])
@@ -141,7 +140,6 @@ def GameWindow(g, filename=None):
                         kb_controls = -1
                     elif event.key == pygame.K_RETURN:
                         if moves_best is None or moves: continue
-                        print('solving...')
                         for node, move in moves_best.items():
                             if move > 0:
                                 for _ in range(abs(move)):
@@ -152,7 +150,6 @@ def GameWindow(g, filename=None):
                     is_victory = g.is_victory()
 
         if is_victory and only_once:
-            print('You won!')
             play_sfx('victory')
             btn_save.is_active = True
             only_once = False

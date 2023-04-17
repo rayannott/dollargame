@@ -61,7 +61,6 @@ def SandboxWindow():
                                 running = False
                             elif btn_generate.hovering(up):
                                 play_sfx('click')
-                                print('Game was generated')
                                 G = generate_game(number_of_nodes=cnt_nodes.value,
                                                   bank_minus_genus=cnt_b_minus_g.value,
                                                   display_layout=OPTIONS['layout'])

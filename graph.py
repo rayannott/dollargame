@@ -13,7 +13,6 @@ from sfx import play_sfx
 
 
 def node_gives(node_down, g, anim, moves, silent=False):
-    print(f'Node {node_down} gives')
     g.give(node_down)
     if not silent:
         play_sfx('scroll_short_click')
@@ -22,7 +21,6 @@ def node_gives(node_down, g, anim, moves, silent=False):
     moves.append((node_down, 'give'))
 
 def node_takes(node_down, g, anim, moves, silent=False):
-    print(f'Node {node_down} takes')
     g.take(node_down)
     if not silent:
         play_sfx('scroll_short_click')
@@ -49,22 +47,18 @@ def mouse_on_node(G, pos):
 
 def create_node(G, node_num, pos):
     G.add_node(node=node_num, val=0, pos=pos)
-    print(f'Node {node_num} created: {G.nodes[node_num]}')
 
 
 def remove_node(G, node_num):
     G.remove_node(node_num)
-    print(f'Node {node_num} removed')
 
 
 def create_edge(G, s, f):
     G.add_edge(s, f)
-    print(f'Created edge {s}->{f}')
 
 
 def remove_edge(G, s, f):
     G.remove_edge(s, f)
-    print(f'Removed edge {s}->{f}')
 
 
 def increase_value(G, node):

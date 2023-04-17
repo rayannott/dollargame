@@ -10,7 +10,6 @@ from graph import get_random_game, load_game
 
 
 def OpenGameWindow():
-    print('OpenGameWindow is opened')
     btn_back = Button((10, 550), (100, 40), 'back',
                       hover_text='go back to menu')
     btn_randomgame = Button((120, 550), (100, 40), 'random',
@@ -44,7 +43,6 @@ def OpenGameWindow():
                         running_opengame = False
                     elif btn_randomgame.hovering(up):
                         play_sfx('click')
-                        print('Starting a random game')
                         g, filename = get_random_game()
                         if g is not None:
                             GameWindow(g, filename)

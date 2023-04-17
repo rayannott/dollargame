@@ -68,7 +68,6 @@ def OptionsWindow():
                         with open(OPTIONS_DIR, 'w') as f:
                             json.dump(OPTIONS, f)
                         cmdline.log('info: saved successfully')
-                        print('Settings saved')
                         play_sfx('options_switch')
                     elif btn_show_ind.hovering(up):
                         OPTIONS['show_node_ids'] = not OPTIONS['show_node_ids']

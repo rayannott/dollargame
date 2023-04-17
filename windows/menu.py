@@ -39,7 +39,6 @@ def MenuWindow():
                 if event.button == 1:
                     if btn_options.hovering(up):
                         play_sfx('click')
-                        print('Options')
                         OptionsWindow()
                         pygame.display.set_caption('Menu')
                     elif btn_exit.hovering(up):

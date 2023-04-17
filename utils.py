@@ -174,7 +174,6 @@ def save_new_game(g):
     }
     with open(f'games/{filename}', 'w') as fr:
         json.dump(to_save, fr)
-    print(f'New file {filename} created')
     return filename
 
 
