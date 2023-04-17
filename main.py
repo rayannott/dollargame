@@ -1,4 +1,4 @@
-from gui import MenuWindow
+from windows.menu import MenuWindow
 from sfx import play_bg_music
 
 play_bg_music()
