@@ -4,7 +4,6 @@ import math
 import pygame
 
 from utils import ANIMATION_PATHS_LINGERING_TIME, Vec2, linspace
-from graph import DGGraph
 
 
 def get_random_color():
@@ -45,7 +44,7 @@ def get_random_p1_p2(p0: Vec2, p3: Vec2) -> tuple[Vec2, Vec2]:
     return (p1, p2)
 
 
-def get_curves(g: DGGraph, node_index: int, give: bool) -> list[Bezier]:
+def get_curves(g, node_index: int, give: bool) -> list[Bezier]:
     neigbors_ids = g.neighbors(node_index)
     neigbors_endpoints = [Vec2(*g.nodes[i]['pos']) for i in neigbors_ids]
     p0 = Vec2(*g.nodes[node_index]['pos'])
