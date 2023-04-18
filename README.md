@@ -20,15 +20,16 @@ _Note: has <b>orange</b> outline outline when the game is in progress and green 
 
 This window has two regions: the one with the indicators and the second with the game itself (boxed in a thin light blue rectangle).
 
-As is was mentioned above, the game is represented by a graph with people as nodes and connections between them as edges. A number to the south-east of a node shows its value (red if it is negative and white otherwise). By hovering a node and scrolling up/down one can execute the <b>give</b>/<b>take</b> action on this node.
+As is was mentioned above, the game is represented by a graph with people as nodes and connections between them as edges. A number to the south-east of a node shows its value (red if it is negative and white otherwise). By hovering a node and scrolling up/down one can execute the <b>give</b>/<b>take</b> action on this node. Also, you can perform these actions using the keyboards: type a node's index number and press UP to <b>give</b> or DOWN to <b>take</b>.
 
 Outside of the game field there are:
 - <b>GENUS</b>: [pararmeter] $E-N+1$, where $E$ and $N$ are the number of edges and nodes respectively (we will need it later);
 - <b>BANK</b>: [parameter] simply the sum of all values;
 - <b>MOVES</b>: [counter] the number of moves executed by the player so far;
-- <b>Best</b>: [] (is showed only if the game has been played before) the least number of moves which led to the victory;
+- <b>Best</b>: [] (is shown only if the game has been played before) the least number of moves which led to the victory;
 - <b>Save</b>: [button] saves the game to the disk (also saves the sequence of moves if pressed after winning)
 
+Hint: hit RETURN to solve the game algorithmically.
 
 ### Sandbox mode
 _Note: has <b>magenta</b> outline._
@@ -47,5 +48,7 @@ Here you can configure some of the game's parameters such as:
 There is also a command line providing functionality to delete, reset, change the existing games or get in-depth statistics on them. Try 'help' to learn more.
 
 ### Open window
-You will see the table of green panels which show games' information: number, an amount of nodes and edges and how many times they have been solved before; moreover, the best of those solutions is shown (measured by the number of moves: less is better). Scroll the mousewheel or use the 'u'/'d' buttons to navigate. Click a panel to proceed.
+You will see the table of green panels which show games' information: number, an amount of nodes and edges and how many times they have been solved before; moreover, the best of those solutions is shown (measured by the number of moves: fewer is better). Scroll the mousewheel or use the 'u'/'d' buttons to navigate. When hovering a panel hold shift to glimpse a preview of the game. Click a panel to proceed. 
+
+Alternatively, one can open a game by typing its number using a keyboard and pressing RETURN. 
 
