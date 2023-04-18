@@ -74,11 +74,12 @@ def SandboxWindow():
                                 G = DGGraph()
                                 cnt = count(0)
                         elif event.button in {4, 5}:
-                            play_sfx('scroll_short_click')
-                            cnt_nodes.hovering(
-                                up, add=1 if event.button == 4 else -1)
-                            cnt_b_minus_g.hovering(
-                                up, add=1 if event.button == 4 else -1)
+                            if cnt_nodes.hovering(
+                                up, add=1 if event.button == 4 else -1) or \
+                                cnt_b_minus_g.hovering(
+                                up, add=1 if event.button == 4 else -1):
+                                    play_sfx('scroll_short_click')
+                                
                     else:
                         down_bool, node_down = mouse_on_node(G, down)
                         up_bool, node_up = mouse_on_node(G, up)
